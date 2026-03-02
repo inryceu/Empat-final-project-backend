@@ -1,0 +1,53 @@
+services:
+  gateway:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+    networks:
+      - app-network
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - MONGO_URI=mongodb://db:27017/nest_db
+      - REDIS_URL=redis://cache:6379
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - GOOGLE_CALLBACK_URL=http://localhost/auth/google/callback
+    deploy:
+      replicas: 3 
+    networks:
+      - app-network
+    depends_on:
+      - cache
+      - db
+
+  cache:
+    image: redis:alpine
+    networks:
+      - app-network
+    volumes:
+      - redis_data:/data
+
+  db:
+    image: mongo:latest
+    networks:
+      - app-network
+    volumes:
+      - mongo_data:/data/db
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mongo_data:
+  redis_data:
