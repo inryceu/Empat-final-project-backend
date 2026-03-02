@@ -19,9 +19,10 @@ services:
       - PORT=3000
       - MONGO_URI=mongodb://db:27017/nest_db
       - REDIS_URL=redis://cache:6379
+      - JWT_SECRET=${JWT_SECRET}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
-      - GOOGLE_CALLBACK_URL=http://localhost/auth/google/callback
+      - GOOGLE_CALLBACK_URL={GOOGLE_CALLBACK_URL}
     deploy:
       replicas: 3 
     networks:
