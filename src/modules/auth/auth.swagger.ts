@@ -1,6 +1,12 @@
 import { applyDecorators } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiBody,
+} from '@nestjs/swagger';
 import { UserProfileDto } from '../users/dto/user-profile.dto';
+import { RegisterDto, LoginDto } from './dto/auth.dto';
 
 export function ApiGoogleAuth() {
   return applyDecorators(
@@ -27,6 +33,53 @@ export function ApiGoogleAuthCallback() {
     ApiResponse({
       status: 401,
       description: 'Помилка авторизації з боку Google.',
+    }),
+  );
+}
+
+export function ApiRegisterUser() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Реєстрація за email та паролем',
+      description:
+        "Створює новий акаунт користувача з email, паролем та ім'ям.",
+    }),
+    ApiBody({ type: RegisterDto }),
+    ApiResponse({
+      status: 201,
+      description: 'Користувача успішно зареєстровано. Повертає JWT токен.',
+    }),
+    ApiResponse({
+      status: 400,
+      description:
+        'Помилка валідації вхідних даних (невірний email, закороткий пароль тощо).',
+    }),
+    ApiResponse({
+      status: 409,
+      description: 'Користувач з таким email вже існує.',
+    }),
+  );
+}
+
+export function ApiLoginUser() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Вхід за email та паролем',
+      description: 'Перевіряє облікові дані та повертає JWT токен доступу.',
+    }),
+    ApiBody({ type: LoginDto }),
+    ApiResponse({
+      status: 201,
+      description: 'Успішний вхід. Повертає JWT токен.', // POST за замовчуванням повертає 201 у NestJS
+    }),
+    ApiResponse({
+      status: 400,
+      description: 'Помилка валідації вхідних даних.',
+    }),
+    ApiResponse({
+      status: 401,
+      description:
+        'Невірний email або пароль, або акаунт створено через Google.',
     }),
   );
 }
