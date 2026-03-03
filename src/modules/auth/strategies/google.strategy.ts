@@ -19,7 +19,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       console.log('--- GOOGLE PROFILE ---', JSON.stringify(profile, null, 2));
 
       const user = await this.authService.validateGoogleUser(profile);
-      
+
       done(null, user);
     } catch (error) {
       console.error('КРИТИЧНА ПОМИЛКА В GOOGLE STRATEGY:', error);

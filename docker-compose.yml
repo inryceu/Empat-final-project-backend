@@ -24,7 +24,7 @@ services:
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
       - GOOGLE_CALLBACK_URL=${GOOGLE_CALLBACK_URL}
     deploy:
-      replicas: 3 
+      replicas: 1
     networks:
       - app-network
     depends_on:
