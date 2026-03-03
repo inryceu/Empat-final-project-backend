@@ -65,6 +65,10 @@ export class AiController {
       status: 'success',
       message: `File resource ${resourceId} processed`,
     };
+    return {
+      status: 'success',
+      message: `File resource ${resourceId} processed`,
+    };
   }
 
   @Post('process/url/:resourceId')
@@ -76,5 +80,10 @@ export class AiController {
       status: 'success',
       message: `URL resource ${resourceId} processed`,
     };
+    return {
+      status: 'success',
+      message: `URL resource ${resourceId} processed`,
+    };
   }
 }
+
