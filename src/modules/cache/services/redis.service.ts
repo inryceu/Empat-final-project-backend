@@ -13,7 +13,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   private connected = false;
 
   onModuleInit() {
-    const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
+    const redisUrl = process.env.REDIS_URL || '';
     this.logger.log(`Connecting to Redis at ${redisUrl}...`);
 
     this.client = new Redis(redisUrl, {
