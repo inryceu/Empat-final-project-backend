@@ -17,8 +17,8 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3000
-      - MONGODB_URI=mongodb://db:27017/nest_db
-      - REDIS_URL=redis://cache:6379
+      - MONGODB_URI=${MONGODB_URI}
+      - REDIS_URL=${REDIS_URL}
       - JWT_SECRET=${JWT_SECRET}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
@@ -28,15 +28,18 @@ services:
     networks:
       - app-network
     depends_on:
-      - cache
+      - redis
       - db
 
-  cache:
-    image: redis:alpine
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
     networks:
       - app-network
     volumes:
       - redis_data:/data
+    command: redis-server --save 60 1 --loglevel warning
 
   db:
     image: mongo:latest

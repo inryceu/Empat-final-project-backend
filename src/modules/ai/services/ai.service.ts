@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { ResourcesService } from '../../resources/resources.service';
-import { CacheService } from '../../cache/cache.service';
+import { CacheService } from '../../cache/services/cache.service';
 import { GeminiService } from './gemini.service';
 import { DocumentService } from './document.service';
 import { ScraperService } from './scraper.service';
