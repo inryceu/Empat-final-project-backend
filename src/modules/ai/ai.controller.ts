@@ -65,6 +65,10 @@ export class AiController {
       status: 'success',
       message: `File resource ${resourceId} processed`,
     };
+    return {
+      status: 'success',
+      message: `File resource ${resourceId} processed`,
+    };
   }
 
   @Post('process/url/:resourceId')
@@ -72,6 +76,10 @@ export class AiController {
   @ApiProcessUrl()
   async processUrl(@Param('resourceId') resourceId: string) {
     await this.aiService.processUrl(resourceId);
+    return {
+      status: 'success',
+      message: `URL resource ${resourceId} processed`,
+    };
     return {
       status: 'success',
       message: `URL resource ${resourceId} processed`,
