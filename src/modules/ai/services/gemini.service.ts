@@ -3,32 +3,74 @@ import { GoogleGenerativeAI, GenerativeModel } from '@google/generative-ai';
 
 @Injectable()
 export class GeminiService implements OnModuleInit {
-  private genAI: GoogleGenerativeAI;
-  private embeddingModel: GenerativeModel;
+  private clients: GoogleGenerativeAI[] = [];
+  private currentClientIndex = 0;
+  private requestCount = 0;
+  private readonly REQUESTS_PER_KEY = 5;
 
   onModuleInit() {
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey)
-      throw new Error('GEMINI_API_KEY is missing in environment variables');
+    const keysString = process.env.GEMINI_API_KEYS;
+    if (!keysString) {
+      throw new Error(
+        'GEMINI_API_KEYS is missing. Please provide comma-separated keys.',
+      );
+    }
 
-    this.genAI = new GoogleGenerativeAI(apiKey);
+    const keys = keysString
+      .split(',')
+      .map((k) => k.trim())
+      .filter((k) => k.length > 0);
 
-    this.embeddingModel = this.genAI.getGenerativeModel({
-      model: 'gemini-embedding-001',
-    });
+    if (keys.length === 0) {
+      throw new Error('No valid keys found in GEMINI_API_KEYS');
+    }
+
+    this.clients = keys.map((key) => new GoogleGenerativeAI(key));
   }
 
   getStatus(): boolean {
-    return !!this.genAI;
+    return this.clients.length > 0;
+  }
+
+  private getRotatedModel(modelConfig: {
+    model: string;
+    systemInstruction?: string;
+  }): GenerativeModel {
+    if (this.requestCount >= this.REQUESTS_PER_KEY) {
+      this.currentClientIndex =
+        (this.currentClientIndex + 1) % this.clients.length;
+      this.requestCount = 0;
+    }
+
+    this.requestCount++;
+    const currentClient = this.clients[this.currentClientIndex];
+
+    return currentClient.getGenerativeModel(modelConfig);
   }
 
   async generateEmbeddings(texts: string[]): Promise<number[][]> {
-    const embeddings = await Promise.all(
-      texts.map(async (text) => {
-        const result = await this.embeddingModel.embedContent(text);
-        return result.embedding.values;
-      }),
-    );
+    const embeddings: number[][] = [];
+    const BATCH_SIZE = 5;
+    const DELAY_MS = 1000;
+
+    for (let i = 0; i < texts.length; i += BATCH_SIZE) {
+      const batch = texts.slice(i, i + BATCH_SIZE);
+
+      const batchResults = await Promise.all(
+        batch.map(async (text) => {
+          const model = this.getRotatedModel({ model: 'gemini-embedding-001' });
+          const result = await model.embedContent(text);
+          return result.embedding.values;
+        }),
+      );
+
+      embeddings.push(...batchResults);
+
+      if (i + BATCH_SIZE < texts.length) {
+        await new Promise((resolve) => setTimeout(resolve, DELAY_MS));
+      }
+    }
+
     return embeddings;
   }
 
@@ -36,12 +78,12 @@ export class GeminiService implements OnModuleInit {
     userPrompt: string,
     systemInstruction: string,
   ): Promise<string> {
-    const modelWithSystem = this.genAI.getGenerativeModel({
+    const model = this.getRotatedModel({
       model: 'gemini-3.1-flash',
       systemInstruction: systemInstruction,
     });
 
-    const result = await modelWithSystem.generateContent(userPrompt);
+    const result = await model.generateContent(userPrompt);
     return result.response.text();
   }
 }
