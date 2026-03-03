@@ -19,7 +19,13 @@ export class AuthController {
   @ApiOperation({ summary: 'Колбек від Google (Фронтенд сюди не стукає напряму)' })
   async googleAuthRedirect(@Req() req, @Res() res: Response) {
     const token = await this.authService.login(req.user);
-    res.redirect(`${process.env.FRONTEND_URL}/auth/success?token=${token}`);
+    //TODO: 
+    //res.redirect(`${process.env.FRONTEND_URL}/auth/success?token=${token}`);
+    res.json({
+      message: 'success',
+      token: token,
+      user: req.user
+    });
   }
 
   @Get('me')
