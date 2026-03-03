@@ -39,7 +39,8 @@ export class UsersService {
       .findByIdAndUpdate(id, updateUserDto, { new: true })
       .exec();
 
-    if (!updatedUser) throw new NotFoundException(`User with ID ${id} not found`);
+    if (!updatedUser)
+      throw new NotFoundException(`User with ID ${id} not found`);
     return updatedUser;
   }
 
