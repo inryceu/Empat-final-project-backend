@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
@@ -14,7 +18,7 @@ export class CompaniesService {
   private serializeCompany(company: CompanyDocument): any {
     const obj = company.toObject ? company.toObject() : company;
     const { _id, password, ...rest } = obj;
-    
+
     return {
       id: _id.toString(),
       ...rest,
@@ -42,7 +46,10 @@ export class CompaniesService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const isPasswordValid = await bcrypt.compare(loginDto.password, company.password || '');
+    const isPasswordValid = await bcrypt.compare(
+      loginDto.password,
+      company.password || '',
+    );
 
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
@@ -76,17 +83,15 @@ export class CompaniesService {
 
   async update(
     id: string,
-    updateData: Partial<CreateCompanyDto>
+    updateData: Partial<CreateCompanyDto>,
   ): Promise<any> {
     if (updateData.password) {
       updateData.password = await bcrypt.hash(updateData.password, 10);
     }
 
-    const updatedCompany = await this.companyModel.findByIdAndUpdate(
-      id,
-      { $set: updateData },
-      { new: true }
-    ).exec();
+    const updatedCompany = await this.companyModel
+      .findByIdAndUpdate(id, { $set: updateData }, { new: true })
+      .exec();
 
     if (!updatedCompany) {
       throw new NotFoundException(`Company with ID ${id} not found`);

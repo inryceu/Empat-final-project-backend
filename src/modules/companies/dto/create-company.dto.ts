@@ -1,4 +1,10 @@
-import { IsString, IsEmail, IsNotEmpty, MinLength, IsOptional } from 'class-validator';
+import {
+  IsString,
+  IsEmail,
+  IsNotEmpty,
+  MinLength,
+  IsOptional,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateCompanyDto {
@@ -7,27 +13,43 @@ export class CreateCompanyDto {
   @IsNotEmpty()
   name: string;
 
-  @ApiProperty({ example: 'Technology', description: 'Industry the company operates in' })
+  @ApiProperty({
+    example: 'Technology',
+    description: 'Industry the company operates in',
+  })
   @IsString()
   @IsNotEmpty()
   industry: string;
 
-  @ApiProperty({ example: '50-100', description: 'Size of the company (number of employees)' })
+  @ApiProperty({
+    example: '50-100',
+    description: 'Size of the company (number of employees)',
+  })
   @IsString()
   @IsNotEmpty()
   size: string;
 
-  @ApiProperty({ example: 'John Doe', description: 'Full name of the company contact person' })
+  @ApiProperty({
+    example: 'John Doe',
+    description: 'Full name of the company contact person',
+  })
   @IsString()
   @IsNotEmpty()
   contactName: string;
 
-  @ApiProperty({ example: 'john@techcorp.com', description: 'Contact email for the company' })
+  @ApiProperty({
+    example: 'john@techcorp.com',
+    description: 'Contact email for the company',
+  })
   @IsEmail()
   @IsNotEmpty()
   email: string;
 
-  @ApiProperty({ example: 'password123', description: 'Password for company account', required: false })
+  @ApiProperty({
+    example: 'password123',
+    description: 'Password for company account',
+    required: false,
+  })
   @IsString()
   @MinLength(6)
   @IsOptional()
@@ -35,7 +57,10 @@ export class CreateCompanyDto {
 }
 
 export class LoginCompanyDto {
-  @ApiProperty({ example: 'admin@company.com', description: 'Company contact email' })
+  @ApiProperty({
+    example: 'admin@company.com',
+    description: 'Company contact email',
+  })
   @IsEmail()
   @IsNotEmpty()
   email: string;

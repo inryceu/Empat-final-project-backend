@@ -39,7 +39,9 @@ export class CompaniesController {
 
   @Post('login')
   @ApiLoginCompany()
-  async login(@Body() loginDto: LoginCompanyDto): Promise<Omit<Company, 'password'>> {
+  async login(
+    @Body() loginDto: LoginCompanyDto,
+  ): Promise<Omit<Company, 'password'>> {
     return this.companiesService.login(loginDto);
   }
 

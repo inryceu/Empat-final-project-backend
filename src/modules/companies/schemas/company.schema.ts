@@ -3,7 +3,7 @@ import { Document } from 'mongoose';
 
 export type CompanyDocument = Company & Document;
 
-@Schema({ timestamps: true }) 
+@Schema({ timestamps: true })
 export class Company {
   @Prop({ required: true })
   name: string;
@@ -20,7 +20,7 @@ export class Company {
   @Prop({ required: true, unique: true })
   email: string;
 
-  @Prop({ required: false }) 
+  @Prop({ required: false })
   password?: string;
 }
 
