@@ -8,16 +8,18 @@ import { UpdateUserDto } from './dto/update-user.dto';
 export class UsersService {
   constructor(@InjectModel(User.name) private userModel: Model<User>) {}
 
-async findOrCreate(profile: any): Promise<User> {
+  async findOrCreate(profile: any): Promise<User> {
     try {
       console.log('--- СТАРТ ФУНКЦІЇ findOrCreate ---');
-      
+
       const { id, emails, displayName, photos } = profile;
-      
-      const email = emails?.[0]?.value; 
+
+      const email = emails?.[0]?.value;
 
       if (!email) {
-        throw new Error('Google не повернув email! Перевір налаштування Scope.');
+        throw new Error(
+          'Google не повернув email! Перевір налаштування Scope.',
+        );
       }
 
       console.log(`Шукаємо юзера з email: ${email}`);
@@ -39,7 +41,7 @@ async findOrCreate(profile: any): Promise<User> {
       return user;
     } catch (error) {
       console.error('ПОМИЛКА В users.service -> findOrCreate:', error);
-      throw error; 
+      throw error;
     }
   }
 

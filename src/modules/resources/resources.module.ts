@@ -6,7 +6,9 @@ import { AiModule } from '../ai/ai.module';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: Resource.name, schema: ResourceSchema }]),
+    MongooseModule.forFeature([
+      { name: Resource.name, schema: ResourceSchema },
+    ]),
     forwardRef(() => AiModule),
   ],
   providers: [ResourcesService],
