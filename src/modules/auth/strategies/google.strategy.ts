@@ -15,7 +15,15 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   }
 
   async validate(at: string, rt: string, profile: any, done: VerifyCallback) {
-    const user = await this.authService.validateGoogleUser(profile);
-    done(null, user);
+    try {
+      console.log('--- GOOGLE PROFILE ---', JSON.stringify(profile, null, 2));
+
+      const user = await this.authService.validateGoogleUser(profile);
+
+      done(null, user);
+    } catch (error) {
+      console.error('КРИТИЧНА ПОМИЛКА В GOOGLE STRATEGY:', error);
+      done(error, false);
+    }
   }
 }

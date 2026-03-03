@@ -9,19 +9,40 @@ export class UsersService {
   constructor(@InjectModel(User.name) private userModel: Model<User>) {}
 
   async findOrCreate(profile: any): Promise<User> {
-    const { id, emails, displayName, photos } = profile;
-    const email = emails[0].value;
+    try {
+      console.log('--- СТАРТ ФУНКЦІЇ findOrCreate ---');
 
-    let user = await this.userModel.findOne({ email });
-    if (!user) {
-      user = await this.userModel.create({
-        googleId: id,
-        email,
-        fullName: displayName,
-        picture: photos?.[0]?.value,
-      });
+      const { id, emails, displayName, photos } = profile;
+
+      const email = emails?.[0]?.value;
+
+      if (!email) {
+        throw new Error(
+          'Google не повернув email! Перевір налаштування Scope.',
+        );
+      }
+
+      console.log(`Шукаємо юзера з email: ${email}`);
+      let user = await this.userModel.findOne({ email });
+
+      if (!user) {
+        console.log('Юзера не знайдено, створюємо нового...');
+        user = await this.userModel.create({
+          googleId: id,
+          email,
+          fullName: displayName,
+          picture: photos?.[0]?.value,
+        });
+        console.log('✅ Нового юзера успішно створено!');
+      } else {
+        console.log('✅ Старого юзера знайдено в базі!');
+      }
+
+      return user;
+    } catch (error) {
+      console.error('ПОМИЛКА В users.service -> findOrCreate:', error);
+      throw error;
     }
-    return user;
   }
 
   async findAll(): Promise<User[]> {

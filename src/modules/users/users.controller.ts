@@ -1,8 +1,23 @@
-import { Controller, Get, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+} from '@nestjs/common';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { AuthGuard } from '@nestjs/passport';
+
+import {
+  ApiFindAllUsers,
+  ApiFindOneUser,
+  ApiUpdateUser,
+  ApiRemoveUser,
+} from './users.swagger';
 
 @ApiTags('Users - Користувачі')
 @ApiBearerAuth()
@@ -12,25 +27,25 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
-  @ApiOperation({ summary: 'Отримати всіх користувачів' })
+  @ApiFindAllUsers()
   findAll() {
     return this.usersService.findAll();
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Отримати користувача за ID' })
+  @ApiFindOneUser()
   findOne(@Param('id') id: string) {
     return this.usersService.findById(id);
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Оновити дані користувача' })
+  @ApiUpdateUser()
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.usersService.update(id, updateUserDto);
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Видалити користувача' })
+  @ApiRemoveUser()
   remove(@Param('id') id: string) {
     return this.usersService.remove(id);
   }

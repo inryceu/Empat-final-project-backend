@@ -35,16 +35,24 @@ export class CacheService {
   async getCachedResponse(
     query: string,
     companyId: string,
-  ): Promise<CachedResponse | null> {
+  ): Promise<any | null> {
     const hash = this.generateHash(query, companyId);
-    const cached = await this.redisService.get(`${this.CACHE_PREFIX}${hash}`);
 
-    if (cached) {
-      this.logger.log(`Cache HIT for query: "${query.substring(0, 50)}..."`);
-      return JSON.parse(cached);
+    try {
+      const cached = await this.redisService.get(`${this.CACHE_PREFIX}${hash}`);
+      if (cached) {
+        this.logger.log(`Cache HIT for query: "${query.substring(0, 50)}..."`);
+        return JSON.parse(cached);
+      }
+    } catch (error) {
+      this.logger.warn(
+        `Redis is unavailable (GET). Proceeding without cache...`,
+      );
     }
 
-    this.logger.log(`Cache MISS for query: "${query.substring(0, 50)}..."`);
+    this.logger.log(
+      `Cache MISS or error for query: "${query.substring(0, 50)}..."`,
+    );
     return null;
   }
 
@@ -54,13 +62,17 @@ export class CacheService {
     response: { content: string; sources: any[] },
   ): Promise<void> {
     const hash = this.generateHash(query, companyId);
-    const cachedData: CachedResponse = { ...response, cachedAt: new Date() };
+    const cachedData = { ...response, cachedAt: new Date() };
 
-    await this.redisService.set(
-      `${this.CACHE_PREFIX}${hash}`,
-      JSON.stringify(cachedData),
-      this.CACHE_TTL,
-    );
+    try {
+      await this.redisService.set(
+        `${this.CACHE_PREFIX}${hash}`,
+        JSON.stringify(cachedData),
+        this.CACHE_TTL,
+      );
+    } catch (error) {
+      this.logger.warn(`Failed to write to Redis (SET): ${error.message}`);
+    }
   }
 
   async trackQuery(query: string, companyId: string): Promise<void> {

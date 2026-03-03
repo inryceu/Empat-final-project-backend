@@ -16,7 +16,7 @@ services:
       dockerfile: Dockerfile
     environment:
       - NODE_ENV=production
-      - PORT=3000
+      - GEMINI_API_KEYS=${GEMINI_API_KEYS}
       - MONGODB_URI=${MONGODB_URI}
       - REDIS_URL=${REDIS_URL}
       - JWT_SECRET=${JWT_SECRET}
@@ -24,7 +24,7 @@ services:
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
       - GOOGLE_CALLBACK_URL=${GOOGLE_CALLBACK_URL}
     deploy:
-      replicas: 3 
+      replicas: 1
     networks:
       - app-network
     depends_on:
