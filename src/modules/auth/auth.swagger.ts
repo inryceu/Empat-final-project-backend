@@ -6,7 +6,7 @@ import {
   ApiBody,
 } from '@nestjs/swagger';
 import { UserProfileDto } from '../users/dto/user-profile.dto';
-import { RegisterDto, LoginDto } from './dto/auth.dto';
+import { RegisterDto, LoginDto, GoogleMobileLoginDto } from './dto/auth.dto';
 
 export function ApiGoogleAuth() {
   return applyDecorators(
@@ -70,7 +70,7 @@ export function ApiLoginUser() {
     ApiBody({ type: LoginDto }),
     ApiResponse({
       status: 201,
-      description: 'Успішний вхід. Повертає JWT токен.', // POST за замовчуванням повертає 201 у NestJS
+      description: 'Успішний вхід. Повертає JWT токен.',
     }),
     ApiResponse({
       status: 400,
@@ -101,5 +101,21 @@ export function ApiGetCurrentUser() {
       status: 401,
       description: 'Неавторизовано (відсутній або невалідний токен).',
     }),
+  );
+}
+
+export function ApiGoogleAuthMobile() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Google Авторизація для Flutter',
+      description:
+        'Приймає idToken від мобільного додатка, верифікує його і повертає JWT бекенда.',
+    }),
+    ApiBody({ type: GoogleMobileLoginDto }),
+    ApiResponse({
+      status: 201,
+      description: 'Успішна авторизація. Повертає accessToken.',
+    }),
+    ApiResponse({ status: 401, description: 'Невалідний Google токен.' }),
   );
 }

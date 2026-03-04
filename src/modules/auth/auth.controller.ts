@@ -12,7 +12,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { UsersService } from '../users/users.service';
 import type { Response } from 'express';
-import { RegisterDto, LoginDto } from './dto/auth.dto';
+import { RegisterDto, LoginDto, GoogleMobileLoginDto } from './dto/auth.dto';
 
 import {
   ApiGoogleAuth,
@@ -20,6 +20,7 @@ import {
   ApiGetCurrentUser,
   ApiRegisterUser,
   ApiLoginUser,
+  ApiGoogleAuthMobile,
 } from './auth.swagger';
 
 @ApiTags('Auth - Авторизація')
@@ -72,5 +73,11 @@ export class AuthController {
       fullName: user.fullName,
       picture: user.picture,
     };
+  }
+
+  @Post('google/mobile')
+  @ApiGoogleAuthMobile()
+  async googleAuthMobile(@Body() dto: GoogleMobileLoginDto) {
+    return this.authService.verifyGoogleIdToken(dto.idToken);
   }
 }

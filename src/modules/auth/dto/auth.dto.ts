@@ -18,3 +18,13 @@ export class RegisterDto extends LoginDto {
   @IsNotEmpty({ message: "Ім'я обов'язкове" })
   fullName: string;
 }
+
+export class GoogleMobileLoginDto {
+  @ApiProperty({
+    example: 'eyJhbGciOiJSUzI1...',
+    description: 'ID токен, отриманий від Google на мобільному пристрої',
+  })
+  @IsString()
+  @IsNotEmpty()
+  idToken: string;
+}

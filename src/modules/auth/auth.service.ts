@@ -6,10 +6,13 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import * as bcrypt from 'bcrypt';
+import { OAuth2Client } from 'google-auth-library';
 import { RegisterDto, LoginDto } from './dto/auth.dto';
 
 @Injectable()
 export class AuthService {
+  private googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
   constructor(
     private jwtService: JwtService,
     private usersService: UsersService,
@@ -66,5 +69,36 @@ export class AuthService {
     return {
       accessToken: this.jwtService.sign(payload),
     };
+  }
+
+  async verifyGoogleIdToken(idToken: string) {
+    try {
+      const ticket = await this.googleClient.verifyIdToken({
+        idToken: idToken,
+        audience: process.env.GOOGLE_CLIENT_ID_MOBILE,
+      });
+
+      const payload = ticket.getPayload();
+
+      if (!payload) {
+        throw new UnauthorizedException('Не вдалося розшифрувати Google токен');
+      }
+
+      const profile = {
+        id: payload.sub,
+        emails: [{ value: payload.email }],
+        displayName: payload.name,
+        photos: [{ value: payload.picture }],
+      };
+
+      const user = await this.usersService.findOrCreate(profile);
+
+      return this.login(user);
+    } catch (error) {
+      console.error('Помилка верифікації Google токена:', error.message);
+      throw new UnauthorizedException(
+        'Невалідний або прострочений Google токен',
+      );
+    }
   }
 }
