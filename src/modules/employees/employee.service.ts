@@ -2,9 +2,8 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, HydratedDocument } from 'mongoose';
 import { Employee } from './schemas/employee.schema';
-import { UpdateEmployeeDto } from './dto/update-employee.dto'; // На майбутнє раджу перейменувати на UpdateEmployeeDto
+import { UpdateEmployeeDto } from './dto/update-employee.dto';
 
-// Сучасний спосіб типізації документів у Mongoose
 export type EmployeesDocument = HydratedDocument<Employee>;
 
 @Injectable()
@@ -39,7 +38,7 @@ export class EmployeesService {
 
   async update(
     id: string,
-    updateData: UpdateEmployeeDto, // Тут теж з часом краще змінити тип на UpdateEmployeeDto
+    updateData: UpdateEmployeeDto,
   ): Promise<EmployeesDocument> {
     const updatedEmployee = await this.employeeModel
       .findByIdAndUpdate(id, updateData, { new: true })
