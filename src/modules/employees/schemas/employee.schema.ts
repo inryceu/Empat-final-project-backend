@@ -6,7 +6,7 @@ export type EmployeesDocument = HydratedDocument<Employee>;
 @Schema({ timestamps: true })
 export class Employee {
   @Prop({ required: true })
-  fullName: string;
+  name: string;
 
   @Prop({ required: true, unique: true })
   email: string;
@@ -32,7 +32,6 @@ export class Employee {
   @Prop()
   favoriteAnimal: string;
 
-  // ДОДАЄМО ЗВ'ЯЗОК З КОМПАНІЄЮ
   @Prop({ type: Types.ObjectId, ref: 'Company', required: true })
   companyId: Types.ObjectId | string;
 }

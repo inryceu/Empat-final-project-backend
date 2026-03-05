@@ -184,7 +184,7 @@ export class AuthService {
     return {
       id: employee._id.toString(),
       email: employee.email,
-      name: employee.fullName,
+      name: employee.name,
       companyId: employee.companyId,
       userType: 'employee',
     };
