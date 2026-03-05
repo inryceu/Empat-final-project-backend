@@ -6,7 +6,7 @@ import {
   ApiBody,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { CreateCompanyDto, LoginCompanyDto } from './dto/create-company.dto';
+import { CreateCompanyDto } from './dto/create-company.dto';
 
 const companyExample = {
   id: '65f1a2b3c4d5e6f7a8b9c0d1',
@@ -15,69 +15,9 @@ const companyExample = {
   size: '50-200 employees',
   contactName: 'Павло Малуєв',
   email: 'info@empat.tech',
-  createdAt: '2026-03-03T10:00:00.000Z',
-  updatedAt: '2026-03-03T10:00:00.000Z',
+  createdAt: '2026-03-05T10:00:00.000Z',
+  updatedAt: '2026-03-05T10:00:00.000Z',
 };
-
-export function ApiCreateCompany() {
-  return applyDecorators(
-    ApiOperation({
-      summary: 'Реєстрація нової компанії',
-      description: 'Створює новий запис компанії в системі та хешує пароль.',
-    }),
-    ApiBody({
-      type: CreateCompanyDto,
-      schema: {
-        example: {
-          name: 'Empat Tech',
-          industry: 'IT',
-          size: '100+',
-          contactName: 'Павло Малуєв',
-          email: 'hr@empat.tech',
-          password: 'securePassword123',
-        },
-      },
-    }),
-    ApiResponse({
-      status: 201,
-      description: 'Компанію успішно створено.',
-      schema: { example: companyExample },
-    }),
-    ApiResponse({
-      status: 400,
-      description: 'Помилка валідації (невірний формат email тощо).',
-    }),
-    ApiResponse({
-      status: 409,
-      description: 'Компанія з таким email вже існує.',
-    }),
-  );
-}
-
-export function ApiLoginCompany() {
-  return applyDecorators(
-    ApiOperation({
-      summary: 'Авторизація компанії',
-      description:
-        'Перевіряє email/пароль та повертає дані компанії (без пароля).',
-    }),
-    ApiBody({
-      type: LoginCompanyDto,
-      schema: {
-        example: {
-          email: 'hr@empat.tech',
-          password: 'securePassword123',
-        },
-      },
-    }),
-    ApiResponse({
-      status: 200,
-      description: 'Авторизація успішна.',
-      schema: { example: companyExample },
-    }),
-    ApiResponse({ status: 401, description: 'Невірні облікові дані.' }),
-  );
-}
 
 export function ApiFindAllCompanies() {
   return applyDecorators(
@@ -88,6 +28,7 @@ export function ApiFindAllCompanies() {
       description: 'Масив компаній успішно отримано.',
       schema: { example: [companyExample] },
     }),
+    ApiResponse({ status: 401, description: 'Неавторизовано.' }),
   );
 }
 
@@ -105,6 +46,7 @@ export function ApiFindOneCompany() {
       description: 'Компанію знайдено.',
       schema: { example: companyExample },
     }),
+    ApiResponse({ status: 401, description: 'Неавторизовано.' }),
     ApiResponse({ status: 404, description: 'Компанію не знайдено.' }),
   );
 }
@@ -128,6 +70,7 @@ export function ApiUpdateCompany() {
       description: 'Дані успішно оновлено.',
       schema: { example: { ...companyExample, industry: 'AI Research' } },
     }),
+    ApiResponse({ status: 401, description: 'Неавторизовано.' }),
     ApiResponse({ status: 404, description: 'Компанію не знайдено.' }),
   );
 }
@@ -142,6 +85,33 @@ export function ApiDeleteCompany() {
       description: 'Компанію видалено.',
       schema: { example: { message: 'Company deleted successfully' } },
     }),
+    ApiResponse({ status: 401, description: 'Неавторизовано.' }),
     ApiResponse({ status: 404, description: 'Компанію не знайдено.' }),
+  );
+}
+
+export function ApiInviteEmployee() {
+  return applyDecorators(
+    ApiBearerAuth(),
+    ApiOperation({
+      summary: 'Запросити співробітника',
+      description: 'Генерує JWT токен запрошення для вказаної електронної пошти. Доступно тільки для акаунтів з типом "company".',
+    }),
+    ApiBody({
+      description: 'Email майбутнього співробітника',
+      schema: { example: { email: 'new.employee@empat.tech' } },
+    }),
+    ApiResponse({
+      status: 201,
+      description: 'Запрошення успішно створено.',
+      schema: {
+        example: {
+          message: 'Запрошення створено',
+          inviteLink: 'https://your-frontend.com/register-employee?token=eyJhbG...&email=new.employee@empat.tech',
+        },
+      },
+    }),
+    ApiResponse({ status: 401, description: 'Неавторизовано.' }),
+    ApiResponse({ status: 403, description: 'Заборонено. Тільки компанії можуть створювати запрошення.' }),
   );
 }
