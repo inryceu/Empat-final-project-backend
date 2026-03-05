@@ -21,7 +21,7 @@ import {
 
 @ApiTags('Employees - Співробітники')
 @ApiBearerAuth()
-@Controller({ path: 'employees', version: '1' }) // Змінено path з 'users' на 'employees'
+@Controller({ path: 'employees', version: '1' })
 @UseGuards(AuthGuard('jwt'))
 export class EmployeesController {
   constructor(private readonly employeesService: EmployeesService) {}
@@ -50,6 +50,6 @@ export class EmployeesController {
   @Delete(':id')
   @ApiRemoveEmployee()
   remove(@Param('id') id: string) {
-    return this.employeesService.delete(id); // Зверніть увагу: у вашому сервісі метод називався remove(), а не delete()
+    return this.employeesService.delete(id); 
   }
 }

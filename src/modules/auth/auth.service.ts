@@ -5,7 +5,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { EmployeesService } from '../employees/employee.service'; // Або UsersService, якщо ще не перейменували
+import { EmployeesService } from '../employees/employee.service';
 import { CompaniesService } from '../companies/companies.service';
 import * as bcrypt from 'bcrypt';
 import { OAuth2Client } from 'google-auth-library';
@@ -24,9 +24,6 @@ export class AuthService {
     private companiesService: CompaniesService,
   ) {}
 
-  // ==========================================
-  // 1. GOOGLE AUTH (ТІЛЬКИ ВХІД)
-  // ==========================================
   async verifyGoogleIdToken(idToken: string) {
     try {
       const ticket = await this.googleClient.verifyIdToken({
@@ -35,7 +32,6 @@ export class AuthService {
       });
       const payload = ticket.getPayload();
 
-      // Виправляємо помилку "string | undefined"
       if (!payload || !payload.email) {
         throw new UnauthorizedException(
           'Не вдалося розшифрувати Google токен або відсутній email',
@@ -75,9 +71,6 @@ export class AuthService {
     );
   }
 
-  // ==========================================
-  // 2. РЕЄСТРАЦІЯ
-  // ==========================================
   async registerCompany(dto: RegisterCompanyDto) {
     const existing = await this.companiesService.findByEmail(dto.email);
     if (existing)
@@ -123,9 +116,6 @@ export class AuthService {
     return this.login(newEmployee, 'employee');
   }
 
-  // ==========================================
-  // 3. ЛОКАЛЬНИЙ ЛОГІН (ВАЛІДАЦІЯ ПАРОЛІВ)
-  // ==========================================
   async validateEmployee(dto: LoginDto) {
     const employee = await this.employeesService.findByEmail(dto.email);
     if (!employee || !employee.password) {
@@ -160,9 +150,6 @@ export class AuthService {
     return company;
   }
 
-  // ==========================================
-  // 4. УТИЛІТИ ТА ПРОФІЛЬ
-  // ==========================================
   async login(entity: any, userType: 'employee' | 'company') {
     const payload = {
       email: entity.email,
@@ -192,9 +179,9 @@ export class AuthService {
 
     const employee = await this.employeesService.findById(userId);
     return {
-      id: employee._id.toString(), // Виправляємо помилку "Property 'id' does not exist"
+      id: employee._id.toString(),
       email: employee.email,
-      name: employee.fullName, // Або fullName, залежно від того, як названо в схемі
+      name: employee.fullName,
       companyId: employee.companyId,
       userType: 'employee',
     };

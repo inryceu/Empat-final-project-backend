@@ -37,7 +37,7 @@ export class AuthController {
     const userType = req.user.userType || 'employee';
     const { accessToken } = await this.authService.login(req.user, userType);
     const profile = await this.authService.getProfile(req.user.sub, req.user.userType);
-    res.send({ accessToken, ...profile });
+    return ({ accessToken, ...profile });
   }
 
   @Post('google/mobile')
@@ -49,7 +49,8 @@ export class AuthController {
   @Post('employee/register')
   @ApiRegisterEmployee()
   async registerEmployee(@Body() dto: RegisterEmployeeDto) {
-    return this.authService.registerEmployee(dto);
+    const { accessToken } = await this.authService.registerEmployee(dto);
+    return ({ accessToken, ...dto });
   }
 
   @Post('employee/login')
@@ -62,7 +63,8 @@ export class AuthController {
   @Post('company/register')
   @ApiRegisterCompany()
   async registerCompany(@Body() dto: RegisterCompanyDto) {
-    return this.authService.registerCompany(dto);
+    const { accessToken } = await this.authService.registerCompany(dto);
+    return ({ accessToken, ...dto });
   }
 
   @Post('company/login')
