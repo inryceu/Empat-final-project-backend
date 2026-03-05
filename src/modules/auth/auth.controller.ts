@@ -6,11 +6,14 @@ import {
   Req,
   UseGuards,
   Res,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { UsersService } from '../users/users.service';
+import { CompaniesService } from '../companies/companies.service';
 import type { Response } from 'express';
 import { RegisterDto, LoginDto, GoogleMobileLoginDto } from './dto/auth.dto';
 
@@ -29,6 +32,8 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly usersService: UsersService,
+    @Inject(forwardRef(() => CompaniesService))
+    private readonly companiesService: CompaniesService,
   ) {}
 
   @Get('google')
@@ -40,7 +45,10 @@ export class AuthController {
   @UseGuards(AuthGuard('google'))
   @ApiGoogleAuthCallback()
   async googleAuthRedirect(@Req() req, @Res() res: Response) {
-    const { accessToken } = await this.authService.login(req.user);
+    const userType = req.user.userType || 'employee';
+
+    const { accessToken } = await this.authService.login(req.user, userType);
+
     res.redirect(
       `${process.env.FRONTEND_URL}/auth/success?token=${accessToken}`,
     );
@@ -63,15 +71,27 @@ export class AuthController {
   @UseGuards(AuthGuard('jwt'))
   @ApiGetCurrentUser()
   async getProfile(@Req() req) {
-    const userId = req.user.userId;
+    const userId = req.user.userId || req.user.sub || req.user.id;
+    const userType = req.user.userType;
+
+    if (userType === 'company') {
+      const company = await this.companiesService.findOne(userId);
+      return {
+        id: company.id,
+        email: company.email,
+        name: company.name,
+        userType: 'company',
+      };
+    }
 
     const user = await this.usersService.findById(userId);
-
     return {
+      id: user._id,
       googleId: user.googleId,
       email: user.email,
       fullName: user.fullName,
       picture: user.picture,
+      userType: 'employee',
     };
   }
 
