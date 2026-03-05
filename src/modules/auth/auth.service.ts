@@ -2,21 +2,75 @@ import {
   Injectable,
   UnauthorizedException,
   ConflictException,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
+import { CompaniesService } from '../companies/companies.service';
 import * as bcrypt from 'bcrypt';
+import { OAuth2Client } from 'google-auth-library';
 import { RegisterDto, LoginDto } from './dto/auth.dto';
 
 @Injectable()
 export class AuthService {
+  private googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
   constructor(
     private jwtService: JwtService,
     private usersService: UsersService,
+    @Inject(forwardRef(() => CompaniesService))
+    private companiesService: CompaniesService,
   ) {}
 
   async validateGoogleUser(profile: any) {
-    return this.usersService.findOrCreate(profile);
+    const email = profile.emails[0].value;
+
+    const company = await this.companiesService.findByEmail(email);
+    if (company) {
+      return { ...(company.toObject?.() || company), userType: 'company' };
+    }
+
+    const user = await this.usersService.findOrCreate(profile);
+    return { ...(user.toObject?.() || user), userType: 'employee' };
+  }
+
+  async verifyGoogleIdToken(idToken: string) {
+    try {
+      const ticket = await this.googleClient.verifyIdToken({
+        idToken: idToken,
+        audience: process.env.GOOGLE_CLIENT_ID_MOBILE,
+      });
+
+      const payload = ticket.getPayload();
+
+      if (!payload) {
+        throw new UnauthorizedException('Не вдалося розшифрувати Google токен');
+      }
+
+      const email = payload.email || '';
+
+      const company = await this.companiesService.findByEmail(email);
+      if (company) {
+        return this.login(company, 'company');
+      }
+
+      const profile = {
+        id: payload.sub,
+        emails: [{ value: payload.email }],
+        displayName: payload.name,
+        photos: [{ value: payload.picture }],
+      };
+
+      const user = await this.usersService.findOrCreate(profile);
+
+      return this.login(user, 'employee');
+    } catch (error) {
+      console.error('Помилка верифікації Google токена:', error.message);
+      throw new UnauthorizedException(
+        'Невалідний або прострочений Google токен',
+      );
+    }
   }
 
   async register(dto: RegisterDto) {
@@ -57,10 +111,11 @@ export class AuthService {
     return user;
   }
 
-  async login(user: any) {
+  async login(user: any, userType: 'employee' | 'company' = 'employee') {
     const payload = {
       email: user.email,
       sub: user._id?.toString() || user.id,
+      userType,
     };
 
     return {

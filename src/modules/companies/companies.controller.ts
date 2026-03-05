@@ -13,6 +13,7 @@ import {
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { CompaniesService } from './companies.service';
+import { AuthService } from '../auth/auth.service';
 import { CreateCompanyDto, LoginCompanyDto } from './dto/create-company.dto';
 import { Company } from './company.interface';
 
@@ -29,20 +30,23 @@ import {
 @Controller({ path: 'companies', version: '1' })
 @UsePipes(new ValidationPipe({ transform: true }))
 export class CompaniesController {
-  constructor(private readonly companiesService: CompaniesService) {}
+  constructor(
+    private readonly companiesService: CompaniesService,
+    private readonly authService: AuthService,
+  ) {}
 
   @Post()
   @ApiCreateCompany()
-  async create(@Body() createCompanyDto: CreateCompanyDto): Promise<Company> {
-    return this.companiesService.create(createCompanyDto);
+  async create(@Body() createCompanyDto: CreateCompanyDto) {
+    const company = await this.companiesService.create(createCompanyDto);
+    return this.authService.login(company, 'company');
   }
 
   @Post('login')
   @ApiLoginCompany()
-  async login(
-    @Body() loginDto: LoginCompanyDto,
-  ): Promise<Omit<Company, 'password'>> {
-    return this.companiesService.login(loginDto);
+  async login(@Body() loginDto: LoginCompanyDto) {
+    const company = await this.companiesService.login(loginDto);
+    return this.authService.login(company, 'company');
   }
 
   @Get()
