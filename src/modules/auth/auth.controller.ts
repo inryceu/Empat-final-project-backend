@@ -49,8 +49,7 @@ export class AuthController {
   @Post('employee/register')
   @ApiRegisterEmployee()
   async registerEmployee(@Body() dto: RegisterEmployeeDto) {
-    const { accessToken } = await this.authService.registerEmployee(dto);
-    return ({ accessToken, ...dto });
+    return await this.authService.registerEmployee(dto);
   }
 
   @Post('employee/login')
@@ -63,8 +62,7 @@ export class AuthController {
   @Post('company/register')
   @ApiRegisterCompany()
   async registerCompany(@Body() dto: RegisterCompanyDto) {
-    const { accessToken } = await this.authService.registerCompany(dto);
-    return ({ accessToken, ...dto });
+    return await this.authService.registerCompany(dto);
   }
 
   @Post('company/login')
