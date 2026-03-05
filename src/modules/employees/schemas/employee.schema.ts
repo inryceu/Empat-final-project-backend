@@ -1,0 +1,40 @@
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { HydratedDocument, Types } from 'mongoose';
+
+export type EmployeesDocument = HydratedDocument<Employee>;
+
+@Schema({ timestamps: true })
+export class Employee {
+  @Prop({ required: true })
+  fullName: string;
+
+  @Prop({ required: true, unique: true })
+  email: string;
+
+  @Prop()
+  password?: string;
+
+  @Prop({ required: true })
+  department: string;
+
+  @Prop({
+    required: true,
+    enum: ['trainee', 'junior', 'middle', 'senior', 'lead'],
+  })
+  role: string;
+
+  @Prop()
+  gender: string;
+
+  @Prop()
+  hobbies: string;
+
+  @Prop()
+  favoriteAnimal: string;
+
+  // ДОДАЄМО ЗВ'ЯЗОК З КОМПАНІЄЮ
+  @Prop({ type: Types.ObjectId, ref: 'Company', required: true })
+  companyId: Types.ObjectId | string;
+}
+
+export const EmployeeSchema = SchemaFactory.createForClass(Employee);

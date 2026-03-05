@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class UserProfileDto {
+export class EmployeeProfileDto {
   @ApiProperty({
     example: '1043839293...',
     description: 'Унікальний ідентифікатор Google',

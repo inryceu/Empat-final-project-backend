@@ -1,40 +1,29 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Req,
-  UseGuards,
-  Res,
-  Inject,
-  forwardRef,
-} from '@nestjs/common';
+import { Controller, Get, Post, Body, Req, UseGuards, Res } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
-import { UsersService } from '../users/users.service';
-import { CompaniesService } from '../companies/companies.service';
 import type { Response } from 'express';
-import { RegisterDto, LoginDto, GoogleMobileLoginDto } from './dto/auth.dto';
+
+import { LoginDto, GoogleMobileLoginDto } from './dto/auth.dto';
+import { RegisterEmployeeDto } from './dto/register-employee.dto';
+import { RegisterCompanyDto } from './dto/register-company.dto';
+import { LoginCompanyDto } from '../companies/dto/create-company.dto';
 
 import {
   ApiGoogleAuth,
   ApiGoogleAuthCallback,
-  ApiGetCurrentUser,
-  ApiRegisterUser,
-  ApiLoginUser,
   ApiGoogleAuthMobile,
+  ApiRegisterEmployee,
+  ApiLoginEmployee,
+  ApiRegisterCompany,
+  ApiLoginCompany,
+  ApiGetProfile,
 } from './auth.swagger';
 
 @ApiTags('Auth - Авторизація')
 @Controller({ path: 'auth', version: '1' })
 export class AuthController {
-  constructor(
-    private readonly authService: AuthService,
-    private readonly usersService: UsersService,
-    @Inject(forwardRef(() => CompaniesService))
-    private readonly companiesService: CompaniesService,
-  ) {}
+  constructor(private readonly authService: AuthService) {}
 
   @Get('google')
   @UseGuards(AuthGuard('google'))
@@ -46,58 +35,47 @@ export class AuthController {
   @ApiGoogleAuthCallback()
   async googleAuthRedirect(@Req() req, @Res() res: Response) {
     const userType = req.user.userType || 'employee';
-
     const { accessToken } = await this.authService.login(req.user, userType);
-
-    res.redirect(
-      `${process.env.FRONTEND_URL}/auth/success?token=${accessToken}`,
-    );
-  }
-
-  @Post('register')
-  @ApiRegisterUser()
-  async register(@Body() registerDto: RegisterDto) {
-    return this.authService.register(registerDto);
-  }
-
-  @Post('login')
-  @ApiLoginUser()
-  async login(@Body() loginDto: LoginDto) {
-    const user = await this.authService.validateUserCredentials(loginDto);
-    return this.authService.login(user);
-  }
-
-  @Get('me')
-  @UseGuards(AuthGuard('jwt'))
-  @ApiGetCurrentUser()
-  async getProfile(@Req() req) {
-    const userId = req.user.userId || req.user.sub || req.user.id;
-    const userType = req.user.userType;
-
-    if (userType === 'company') {
-      const company = await this.companiesService.findOne(userId);
-      return {
-        id: company.id,
-        email: company.email,
-        name: company.name,
-        userType: 'company',
-      };
-    }
-
-    const user = await this.usersService.findById(userId);
-    return {
-      id: user._id,
-      googleId: user.googleId,
-      email: user.email,
-      fullName: user.fullName,
-      picture: user.picture,
-      userType: 'employee',
-    };
+    const profile = await this.authService.getProfile(req.user.sub, req.user.userType);
+    res.send({ accessToken, ...profile });
   }
 
   @Post('google/mobile')
   @ApiGoogleAuthMobile()
   async googleAuthMobile(@Body() dto: GoogleMobileLoginDto) {
     return this.authService.verifyGoogleIdToken(dto.idToken);
+  }
+
+  @Post('employee/register')
+  @ApiRegisterEmployee()
+  async registerEmployee(@Body() dto: RegisterEmployeeDto) {
+    return this.authService.registerEmployee(dto);
+  }
+
+  @Post('employee/login')
+  @ApiLoginEmployee()
+  async loginEmployee(@Body() dto: LoginDto) {
+    const user = await this.authService.validateEmployee(dto);
+    return this.authService.login(user, 'employee');
+  }
+
+  @Post('company/register')
+  @ApiRegisterCompany()
+  async registerCompany(@Body() dto: RegisterCompanyDto) {
+    return this.authService.registerCompany(dto);
+  }
+
+  @Post('company/login')
+  @ApiLoginCompany()
+  async loginCompany(@Body() dto: LoginCompanyDto) {
+    const company = await this.authService.validateCompany(dto);
+    return this.authService.login(company, 'company');
+  }
+
+  @Get('me')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiGetProfile()
+  async getProfile(@Req() req) {
+    return this.authService.getProfile(req.user.sub, req.user.userType);
   }
 }
