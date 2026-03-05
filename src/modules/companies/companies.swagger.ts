@@ -95,7 +95,8 @@ export function ApiInviteEmployee() {
     ApiBearerAuth(),
     ApiOperation({
       summary: 'Запросити співробітника',
-      description: 'Генерує JWT токен запрошення для вказаної електронної пошти. Доступно тільки для акаунтів з типом "company".',
+      description:
+        'Генерує JWT токен запрошення для вказаної електронної пошти. Доступно тільки для акаунтів з типом "company".',
     }),
     ApiBody({
       description: 'Email майбутнього співробітника',
@@ -107,11 +108,15 @@ export function ApiInviteEmployee() {
       schema: {
         example: {
           message: 'Запрошення створено',
-          inviteLink: 'https://your-frontend.com/register-employee?token=eyJhbG...&email=new.employee@empat.tech',
+          inviteLink:
+            'https://your-frontend.com/register-employee?token=eyJhbG...&email=new.employee@empat.tech',
         },
       },
     }),
     ApiResponse({ status: 401, description: 'Неавторизовано.' }),
-    ApiResponse({ status: 403, description: 'Заборонено. Тільки компанії можуть створювати запрошення.' }),
+    ApiResponse({
+      status: 403,
+      description: 'Заборонено. Тільки компанії можуть створювати запрошення.',
+    }),
   );
 }

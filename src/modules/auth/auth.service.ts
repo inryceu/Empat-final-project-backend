@@ -81,7 +81,9 @@ export class AuthService {
       ...dto,
       password: hashedPassword,
     });
-    return ({accessToken: await this.login(newCompany, 'company'), ...newCompany});
+
+    const { accessToken } = await this.login(newCompany, 'company');
+    return { accessToken, ...newCompany };
   }
 
   async registerEmployee(dto: RegisterEmployeeDto) {
@@ -113,7 +115,8 @@ export class AuthService {
       companyId: payload.companyId,
     });
 
-    return ({accessToken: await this.login(newEmployee, 'employee'), ...newEmployee});
+    const { accessToken } = await this.login(newEmployee, 'employee');
+    return { accessToken, ...newEmployee };
   }
 
   async validateEmployee(dto: LoginDto) {

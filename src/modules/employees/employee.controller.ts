@@ -50,6 +50,6 @@ export class EmployeesController {
   @Delete(':id')
   @ApiRemoveEmployee()
   remove(@Param('id') id: string) {
-    return this.employeesService.delete(id); 
+    return this.employeesService.delete(id);
   }
 }
