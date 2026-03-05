@@ -21,7 +21,6 @@ import { AuthService } from '../auth/auth.service';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { Company } from './company.interface';
 
-// Імпортуємо нові декоратори
 import {
   ApiFindAllCompanies,
   ApiFindOneCompany,
