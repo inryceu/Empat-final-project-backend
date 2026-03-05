@@ -2,15 +2,17 @@ import {
   Injectable,
   UnauthorizedException,
   ConflictException,
-  Inject,
-  forwardRef,
+  ForbiddenException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { UsersService } from '../users/users.service';
+import { EmployeesService } from '../employees/employee.service'; // Або UsersService, якщо ще не перейменували
 import { CompaniesService } from '../companies/companies.service';
 import * as bcrypt from 'bcrypt';
 import { OAuth2Client } from 'google-auth-library';
-import { RegisterDto, LoginDto } from './dto/auth.dto';
+import { RegisterEmployeeDto } from './dto/register-employee.dto';
+import { RegisterCompanyDto } from './dto/register-company.dto';
+import { LoginDto } from './dto/auth.dto';
+import { LoginCompanyDto } from '../companies/dto/create-company.dto';
 
 @Injectable()
 export class AuthService {
@@ -18,108 +20,183 @@ export class AuthService {
 
   constructor(
     private jwtService: JwtService,
-    private usersService: UsersService,
-    @Inject(forwardRef(() => CompaniesService))
+    private employeesService: EmployeesService,
     private companiesService: CompaniesService,
   ) {}
 
-  async validateGoogleUser(profile: any) {
-    const email = profile.emails[0].value;
-
-    const company = await this.companiesService.findByEmail(email);
-    if (company) {
-      return { ...(company.toObject?.() || company), userType: 'company' };
-    }
-
-    const user = await this.usersService.findOrCreate(profile);
-    return { ...(user.toObject?.() || user), userType: 'employee' };
-  }
-
+  // ==========================================
+  // 1. GOOGLE AUTH (ТІЛЬКИ ВХІД)
+  // ==========================================
   async verifyGoogleIdToken(idToken: string) {
     try {
       const ticket = await this.googleClient.verifyIdToken({
-        idToken: idToken,
+        idToken,
         audience: process.env.GOOGLE_CLIENT_ID_MOBILE,
       });
-
       const payload = ticket.getPayload();
 
-      if (!payload) {
-        throw new UnauthorizedException('Не вдалося розшифрувати Google токен');
+      // Виправляємо помилку "string | undefined"
+      if (!payload || !payload.email) {
+        throw new UnauthorizedException(
+          'Не вдалося розшифрувати Google токен або відсутній email',
+        );
       }
 
-      const email = payload.email || '';
-
-      const company = await this.companiesService.findByEmail(email);
-      if (company) {
-        return this.login(company, 'company');
-      }
-
-      const profile = {
-        id: payload.sub,
-        emails: [{ value: payload.email }],
-        displayName: payload.name,
-        photos: [{ value: payload.picture }],
-      };
-
-      const user = await this.usersService.findOrCreate(profile);
-
-      return this.login(user, 'employee');
+      return this.handleGoogleLogin(payload.email);
     } catch (error) {
-      console.error('Помилка верифікації Google токена:', error.message);
       throw new UnauthorizedException(
         'Невалідний або прострочений Google токен',
       );
     }
   }
 
-  async register(dto: RegisterDto) {
-    const existingUser = await this.usersService.findByEmail(dto.email);
-    if (existingUser) {
-      throw new ConflictException(
-        'Користувач з таким email вже існує. Спробуйте увійти.',
-      );
+  async validateGoogleUser(profile: any) {
+    const email = profile.emails[0].value;
+    return this.handleGoogleLogin(email, true);
+  }
+
+  private async handleGoogleLogin(email: string, returnRaw = false) {
+    const company = await this.companiesService.findByEmail(email);
+    if (company) {
+      return returnRaw
+        ? { user: company, userType: 'company' }
+        : this.login(company, 'company');
     }
 
-    const hashedPassword = await bcrypt.hash(dto.password, 10);
+    const employee = await this.employeesService.findByEmail(email);
+    if (employee) {
+      return returnRaw
+        ? { user: employee, userType: 'employee' }
+        : this.login(employee, 'employee');
+    }
 
-    const newUser = await this.usersService.create({
+    throw new UnauthorizedException(
+      'Акаунт з таким email не знайдено. Будь ласка, зареєструйтесь.',
+    );
+  }
+
+  // ==========================================
+  // 2. РЕЄСТРАЦІЯ
+  // ==========================================
+  async registerCompany(dto: RegisterCompanyDto) {
+    const existing = await this.companiesService.findByEmail(dto.email);
+    if (existing)
+      throw new ConflictException('Компанія з таким email вже існує.');
+
+    const hashedPassword = await bcrypt.hash(dto.password, 10);
+    const newCompany = await this.companiesService.create({
       ...dto,
       password: hashedPassword,
     });
-
-    return this.login(newUser);
+    return this.login(newCompany, 'company');
   }
 
-  async validateUserCredentials(dto: LoginDto) {
-    const user = await this.usersService.findByEmail(dto.email);
-    if (!user) {
-      throw new UnauthorizedException('Невірний email або пароль');
-    }
-
-    if (!user.password) {
-      throw new UnauthorizedException(
-        'Цей акаунт створено через Google. Будь ласка, використовуйте вхід через Google.',
+  async registerEmployee(dto: RegisterEmployeeDto) {
+    let payload;
+    try {
+      payload = this.jwtService.verify(dto.inviteToken);
+    } catch (e) {
+      throw new ForbiddenException(
+        'Недійсний або прострочений токен запрошення',
       );
     }
 
-    const isPasswordValid = await bcrypt.compare(dto.password, user.password);
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('Невірний email або пароль');
+    if (payload.email !== dto.email) {
+      throw new ForbiddenException(
+        'Цей токен запрошення не належить вказаній пошті',
+      );
     }
 
-    return user;
+    const existing = await this.employeesService.findByEmail(dto.email);
+    if (existing)
+      throw new ConflictException(
+        'Співробітник з таким email вже зареєстрований.',
+      );
+
+    const hashedPassword = await bcrypt.hash(dto.password, 10);
+    const newEmployee = await this.employeesService.create({
+      ...dto,
+      password: hashedPassword,
+      companyId: payload.companyId,
+    });
+
+    return this.login(newEmployee, 'employee');
   }
 
-  async login(user: any, userType: 'employee' | 'company' = 'employee') {
+  // ==========================================
+  // 3. ЛОКАЛЬНИЙ ЛОГІН (ВАЛІДАЦІЯ ПАРОЛІВ)
+  // ==========================================
+  async validateEmployee(dto: LoginDto) {
+    const employee = await this.employeesService.findByEmail(dto.email);
+    if (!employee || !employee.password) {
+      throw new UnauthorizedException(
+        'Невірний email або пароль (або вхід через Google)',
+      );
+    }
+
+    const isPasswordValid = await bcrypt.compare(
+      dto.password,
+      employee.password,
+    );
+    if (!isPasswordValid)
+      throw new UnauthorizedException('Невірний email або пароль');
+
+    return employee;
+  }
+
+  async validateCompany(dto: LoginCompanyDto) {
+    const company = await this.companiesService.findByEmail(dto.email);
+    if (!company || !company.password) {
+      throw new UnauthorizedException('Невірні дані для входу');
+    }
+
+    const isPasswordValid = await bcrypt.compare(
+      dto.password,
+      company.password,
+    );
+    if (!isPasswordValid)
+      throw new UnauthorizedException('Невірні дані для входу');
+
+    return company;
+  }
+
+  // ==========================================
+  // 4. УТИЛІТИ ТА ПРОФІЛЬ
+  // ==========================================
+  async login(entity: any, userType: 'employee' | 'company') {
     const payload = {
-      email: user.email,
-      sub: user._id?.toString() || user.id,
+      email: entity.email,
+      sub: entity._id?.toString() || entity.id,
       userType,
     };
+    return { accessToken: this.jwtService.sign(payload) };
+  }
 
+  async generateInviteToken(companyId: string, employeeEmail: string) {
+    return this.jwtService.sign(
+      { email: employeeEmail, companyId, purpose: 'invite' },
+      { expiresIn: '7d' },
+    );
+  }
+
+  async getProfile(userId: string, userType: string) {
+    if (userType === 'company') {
+      const company = await this.companiesService.findOne(userId);
+      return {
+        id: company.id,
+        email: company.email,
+        name: company.name,
+        userType: 'company',
+      };
+    }
+
+    const employee = await this.employeesService.findById(userId);
     return {
-      accessToken: this.jwtService.sign(payload),
+      id: employee._id.toString(), // Виправляємо помилку "Property 'id' does not exist"
+      email: employee.email,
+      name: employee.fullName, // Або fullName, залежно від того, як названо в схемі
+      companyId: employee.companyId,
+      userType: 'employee',
     };
   }
 }
