@@ -78,7 +78,7 @@ export class CompaniesController {
       );
     }
 
-    const companyId = req.user.sub;
+    const companyId = req.user._id?.toString() || req.user.id;
 
     const inviteToken = await this.authService.generateInviteToken(
       companyId,
