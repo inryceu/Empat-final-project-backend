@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Req, UseGuards, Res } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Req,
+  UseGuards,
+  Res,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
@@ -36,8 +44,11 @@ export class AuthController {
   async googleAuthRedirect(@Req() req, @Res() res: Response) {
     const userType = req.user.userType || 'employee';
     const { accessToken } = await this.authService.login(req.user, userType);
-    const profile = await this.authService.getProfile(req.user.sub, req.user.userType);
-    return ({ accessToken, ...profile });
+    const profile = await this.authService.getProfile(
+      req.user.sub,
+      req.user.userType,
+    );
+    return { accessToken, ...profile };
   }
 
   @Post('google/mobile')

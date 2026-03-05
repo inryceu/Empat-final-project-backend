@@ -20,7 +20,8 @@ export function ApiFindAllEmployees() {
   return applyDecorators(
     ApiOperation({
       summary: 'Отримати всіх співробітників',
-      description: 'Повертає масив усіх зареєстрованих співробітників у системі.',
+      description:
+        'Повертає масив усіх зареєстрованих співробітників у системі.',
     }),
     ApiResponse({
       status: 200,
@@ -37,7 +38,8 @@ export function ApiFindOneEmployee() {
   return applyDecorators(
     ApiOperation({
       summary: 'Отримати співробітника за ID',
-      description: 'Пошук конкретного співробітника за його унікальним ідентифікатором.',
+      description:
+        'Пошук конкретного співробітника за його унікальним ідентифікатором.',
     }),
     ApiParam({
       name: 'id',
@@ -51,7 +53,10 @@ export function ApiFindOneEmployee() {
       schema: { example: employeeExample },
     }),
     ApiResponse({ status: 401, description: 'Неавторизовано.' }),
-    ApiResponse({ status: 404, description: 'Співробітника з таким ID не існує.' }),
+    ApiResponse({
+      status: 404,
+      description: 'Співробітника з таким ID не існує.',
+    }),
   );
 }
 
@@ -59,7 +64,8 @@ export function ApiUpdateEmployee() {
   return applyDecorators(
     ApiOperation({
       summary: 'Оновити дані співробітника',
-      description: 'Часткове оновлення профілю співробітника. Передавайте лише ті поля, які потрібно змінити.',
+      description:
+        'Часткове оновлення профілю співробітника. Передавайте лише ті поля, які потрібно змінити.',
     }),
     ApiParam({
       name: 'id',
@@ -91,7 +97,10 @@ export function ApiUpdateEmployee() {
         },
       },
     }),
-    ApiResponse({ status: 400, description: 'Помилка валідації вхідних даних.' }),
+    ApiResponse({
+      status: 400,
+      description: 'Помилка валідації вхідних даних.',
+    }),
     ApiResponse({ status: 401, description: 'Неавторизовано.' }),
     ApiResponse({ status: 404, description: 'Співробітника не знайдено.' }),
   );
