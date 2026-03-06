@@ -24,6 +24,71 @@ export class AuthService {
     private companiesService: CompaniesService,
   ) {}
 
+  async login(entity: any, userType: 'employee' | 'company') {
+    const payload = {
+      email: entity.email,
+      sub: entity._id?.toString() || entity.id,
+      userType,
+    };
+    const accessToken = this.jwtService.sign(payload);
+
+    const entityData = entity.toObject ? entity.toObject() : { ...entity };
+    delete entityData.password; 
+    delete entityData.__v;   
+    delete entityData._id;
+
+    return {
+      accessToken,
+      user: {
+        ...entityData,
+        id: entity._id?.toString() || entity.id, 
+        userType, 
+      },
+    };
+  }
+
+  async registerCompany(dto: RegisterCompanyDto) {
+    const existing = await this.companiesService.findByEmail(dto.email);
+    if (existing) {
+      throw new ConflictException('Компанія з таким email вже існує.');
+    }
+
+    const hashedPassword = await bcrypt.hash(dto.password, 10);
+    const newCompany = await this.companiesService.create({
+      ...dto,
+      password: hashedPassword,
+    });
+
+    return this.login(newCompany, 'company');
+  }
+
+  async registerEmployee(dto: RegisterEmployeeDto) {
+    let payload;
+    try {
+      payload = this.jwtService.verify(dto.inviteToken);
+    } catch (e) {
+      throw new ForbiddenException('Недійсний або прострочений токен запрошення');
+    }
+
+    if (payload.email !== dto.email) {
+      throw new ForbiddenException('Цей токен запрошення не належить вказаній пошті');
+    }
+
+    const existing = await this.employeesService.findByEmail(dto.email);
+    if (existing) {
+      throw new ConflictException('Співробітник з таким email вже зареєстрований.');
+    }
+
+    const hashedPassword = await bcrypt.hash(dto.password, 10);
+    const newEmployee = await this.employeesService.create({
+      ...dto,
+      password: hashedPassword,
+      companyId: payload.companyId,
+    });
+
+    return this.login(newEmployee, 'employee');
+  }
+
   async verifyGoogleIdToken(idToken: string) {
     try {
       const ticket = await this.googleClient.verifyIdToken({
@@ -33,16 +98,12 @@ export class AuthService {
       const payload = ticket.getPayload();
 
       if (!payload || !payload.email) {
-        throw new UnauthorizedException(
-          'Не вдалося розшифрувати Google токен або відсутній email',
-        );
+        throw new UnauthorizedException('Не вдалося розшифрувати Google токен або відсутній email');
       }
 
       return this.handleGoogleLogin(payload.email);
     } catch (error) {
-      throw new UnauthorizedException(
-        'Невалідний або прострочений Google токен',
-      );
+      throw new UnauthorizedException('Невалідний або прострочений Google токен');
     }
   }
 
@@ -66,73 +127,17 @@ export class AuthService {
         : this.login(employee, 'employee');
     }
 
-    throw new UnauthorizedException(
-      'Акаунт з таким email не знайдено. Будь ласка, зареєструйтесь.',
-    );
-  }
-
-  async registerCompany(dto: RegisterCompanyDto) {
-    const existing = await this.companiesService.findByEmail(dto.email);
-    if (existing)
-      throw new ConflictException('Компанія з таким email вже існує.');
-
-    const hashedPassword = await bcrypt.hash(dto.password, 10);
-    const newCompany = await this.companiesService.create({
-      ...dto,
-      password: hashedPassword,
-    });
-
-    const { accessToken } = await this.login(newCompany, 'company');
-    return { accessToken, ...newCompany };
-  }
-
-  async registerEmployee(dto: RegisterEmployeeDto) {
-    let payload;
-    try {
-      payload = this.jwtService.verify(dto.inviteToken);
-    } catch (e) {
-      throw new ForbiddenException(
-        'Недійсний або прострочений токен запрошення',
-      );
-    }
-
-    if (payload.email !== dto.email) {
-      throw new ForbiddenException(
-        'Цей токен запрошення не належить вказаній пошті',
-      );
-    }
-
-    const existing = await this.employeesService.findByEmail(dto.email);
-    if (existing)
-      throw new ConflictException(
-        'Співробітник з таким email вже зареєстрований.',
-      );
-
-    const hashedPassword = await bcrypt.hash(dto.password, 10);
-    const newEmployee = await this.employeesService.create({
-      ...dto,
-      password: hashedPassword,
-      companyId: payload.companyId,
-    });
-
-    const { accessToken } = await this.login(newEmployee, 'employee');
-    return { accessToken, ...newEmployee };
+    throw new UnauthorizedException('Акаунт з таким email не знайдено. Будь ласка, зареєструйтесь.');
   }
 
   async validateEmployee(dto: LoginDto) {
     const employee = await this.employeesService.findByEmail(dto.email);
     if (!employee || !employee.password) {
-      throw new UnauthorizedException(
-        'Невірний email або пароль (або вхід через Google)',
-      );
+      throw new UnauthorizedException('Невірний email або пароль (або вхід через Google)');
     }
 
-    const isPasswordValid = await bcrypt.compare(
-      dto.password,
-      employee.password,
-    );
-    if (!isPasswordValid)
-      throw new UnauthorizedException('Невірний email або пароль');
+    const isPasswordValid = await bcrypt.compare(dto.password, employee.password);
+    if (!isPasswordValid) throw new UnauthorizedException('Невірний email або пароль');
 
     return employee;
   }
@@ -143,23 +148,10 @@ export class AuthService {
       throw new UnauthorizedException('Невірні дані для входу');
     }
 
-    const isPasswordValid = await bcrypt.compare(
-      dto.password,
-      company.password,
-    );
-    if (!isPasswordValid)
-      throw new UnauthorizedException('Невірні дані для входу');
+    const isPasswordValid = await bcrypt.compare(dto.password, company.password);
+    if (!isPasswordValid) throw new UnauthorizedException('Невірні дані для входу');
 
     return company;
-  }
-
-  async login(entity: any, userType: 'employee' | 'company') {
-    const payload = {
-      email: entity.email,
-      sub: entity._id?.toString() || entity.id,
-      userType,
-    };
-    return { accessToken: this.jwtService.sign(payload) };
   }
 
   async generateInviteToken(companyId: string, employeeEmail: string) {
@@ -172,20 +164,21 @@ export class AuthService {
   async getProfile(userId: string, userType: string) {
     if (userType === 'company') {
       const company = await this.companiesService.findOne(userId);
+      const companyData = company.toObject ? company.toObject() : { ...company };
+      delete companyData.password;
       return {
-        id: company.id,
-        email: company.email,
-        name: company.name,
+        ...companyData,
+        id: company._id?.toString() || company.id,
         userType: 'company',
       };
     }
 
     const employee = await this.employeesService.findById(userId);
+    const employeeData = employee.toObject ? employee.toObject() : { ...employee };
+    delete employeeData.password;
     return {
-      id: employee._id.toString(),
-      email: employee.email,
-      name: employee.name,
-      companyId: employee.companyId,
+      ...employeeData,
+      id: employee._id?.toString() || employee.id,
       userType: 'employee',
     };
   }

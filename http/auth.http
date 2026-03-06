@@ -1,0 +1,81 @@
+@host = http://localhost
+@baseUrl = {{host}}/api/v1
+
+# отриманий токен при інвайті
+@inviteToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImVtcGxveWVlQHRlY2hjb3JwLmNvbSIsImNvbXBhbnlJZCI6IjY5YWIwMzdmZDM4ZmNhY2M5ZTM4ZTA4YSIsInB1cnBvc2UiOiJpbnZpdGUiLCJpYXQiOjE3NzI4MTU2NjIsImV4cCI6MTc3MzQyMDQ2Mn0.6JRtU1SBrg3kYBiqjas0BdoP-OckE2_TXkC_aetYQUs
+
+###
+# @name registerCompanyReq
+POST {{baseUrl}}/auth/company/register
+Content-Type: application/json
+
+{
+  "name": "Tech Corp",
+  "industry": "IT",
+  "size": "51-200",
+  "contactName": "John Doe",
+  "email": "company@techcorp.com",
+  "password": "Password123!"
+}
+
+###
+# @name loginCompanyReq
+POST {{baseUrl}}/auth/company/login
+Content-Type: application/json
+
+{
+  "email": "company@techcorp.com",
+  "password": "Password123!"
+}
+
+###
+@companyToken = {{loginCompanyReq.response.body.accessToken}}
+
+###
+# @name registerEmployeeReq
+POST {{baseUrl}}/auth/employee/register
+Content-Type: application/json
+
+{
+  "name": "Jane Smith",
+  "email": "employee@techcorp.com",
+  "password": "Password123!",
+  "inviteToken": "{{inviteToken}}",
+  "department": "some department",
+  "role": "lead",
+  "gender": "female",
+  "hobbies": "some hobbies",
+  "favoriteAnimal": "some favoriteAnimal"
+}
+
+###
+# @name loginEmployeeReq
+POST {{baseUrl}}/auth/employee/login
+Content-Type: application/json
+
+{
+  "email": "employee@techcorp.com",
+  "password": "Password123!"
+}
+
+###
+@employeeToken = {{loginEmployeeReq.response.body.accessToken}}
+
+###
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{companyToken}}
+
+###
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{employeeToken}}
+
+###
+POST {{baseUrl}}/auth/google/mobile
+Content-Type: application/json
+
+{
+  "idToken": "GOOGLE_ID_TOKEN"
+}
+
+###
+GET {{baseUrl}}/auth/google

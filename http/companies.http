@@ -1,0 +1,40 @@
+@host = http://localhost
+@baseUrl = {{host}}/api/v1
+
+# отриманий токен при реєстрації
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImNvbXBhbnlAdGVjaGNvcnAuY29tIiwic3ViIjoiNjlhYjAzN2ZkMzhmY2FjYzllMzhlMDhhIiwidXNlclR5cGUiOiJjb21wYW55IiwiaWF0IjoxNzcyODE1MjMxLCJleHAiOjE3NzM0MjAwMzF9.cKyyhgCi5FvSJA6-o3Grpzo6E_cGanRgl-w8wnt3EqY
+
+# отриманий id при реєстрації
+@companyId = 69ab037fd38fcacc9e38e08a
+
+###
+GET {{baseUrl}}/companies
+Authorization: Bearer {{token}}
+
+###
+GET {{baseUrl}}/companies/{{companyId}}
+Authorization: Bearer {{token}}
+
+###
+PATCH {{baseUrl}}/companies/{{companyId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Tech Corp Updated",
+  "size": "200-500"
+}
+
+###
+DELETE {{baseUrl}}/companies/{{companyId}}
+Authorization: Bearer {{token}}
+
+###
+# @name inviteEmployeeReq
+POST {{baseUrl}}/companies/invite-employee
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "email": "employee@techcorp.com"
+}

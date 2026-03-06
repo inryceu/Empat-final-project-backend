@@ -12,7 +12,7 @@ export class CompaniesService {
   ) {}
 
   private serializeCompany(company: CompanyDocument): any {
-    const { _id, password, ...rest } = company.toObject();
+    const { _id, password, __v, ...rest } = company.toObject();
     return { id: _id.toString(), ...rest };
   }
 
