@@ -4,7 +4,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { UsersModule } from './modules/employees/employee.module';
+import { EmployeesModule } from './modules/employees/employee.module';
 import { AiModule } from './modules/ai/ai.module';
 import { CompaniesModule } from './modules/companies/companies.module';
 
@@ -14,7 +14,7 @@ import { CompaniesModule } from './modules/companies/companies.module';
     MongooseModule.forRoot(process.env.MONGODB_URI || ''),
     AiModule,
     AuthModule,
-    UsersModule,
+    EmployeesModule,
     CompaniesModule,
   ],
   controllers: [AppController],
