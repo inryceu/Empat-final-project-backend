@@ -1,9 +1,6 @@
 @host = http://localhost
 @baseUrl = {{host}}/api/v1
 
-# отриманий токен при інвайті
-@inviteToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImVtcGxveWVlQHRlY2hjb3JwLmNvbSIsImNvbXBhbnlJZCI6IjY5YWIyMDQ4NzNiNWE4ZmMyYjJmYjNhZCIsInB1cnBvc2UiOiJpbnZpdGUiLCJpYXQiOjE3NzI4MjI2NTQsImV4cCI6MTc3MzQyNzQ1NH0.zSVQH4W7jWeVZnf5rVPY7lW3KEye-AEGQrIApln-ST4
-
 ###
 # @name registerCompanyReq
 POST {{baseUrl}}/auth/company/register
@@ -32,20 +29,23 @@ Content-Type: application/json
 @companyToken = {{loginCompanyReq.response.body.accessToken}}
 
 ###
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{companyToken}}
+
+###
+@inviteToken = 74f817d8b0c446aa738fbcedc601c292199888ea101c202da6558ec9e890e805
+
+###
 # @name registerEmployeeReq
 POST {{baseUrl}}/auth/employee/register
 Content-Type: application/json
 
 {
-  "name": "Jane Smith",
-  "email": "employee@techcorp.com",
+  "token": "{{inviteToken}}",
   "password": "Password123!",
-  "inviteToken": "{{inviteToken}}",
-  "department": "some department",
-  "role": "lead",
   "gender": "female",
-  "hobbies": "some hobbies",
-  "favoriteAnimal": "some favoriteAnimal"
+  "hobbies": "Читання, Подорожі",
+  "favoriteAnimal": "Кіт"
 }
 
 ###
@@ -60,10 +60,6 @@ Content-Type: application/json
 
 ###
 @employeeToken = {{loginEmployeeReq.response.body.accessToken}}
-
-###
-GET {{baseUrl}}/auth/me
-Authorization: Bearer {{companyToken}}
 
 ###
 GET {{baseUrl}}/auth/me

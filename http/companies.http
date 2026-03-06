@@ -1,20 +1,33 @@
 @host = http://localhost
 @baseUrl = {{host}}/api/v1
 
-# отриманий токен при реєстрації
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImNvbXBhbnlAdGVjaGNvcnAuY29tIiwiaWQiOiI2OWFiMjA0ODczYjVhOGZjMmIyZmIzYWQiLCJ1c2VyVHlwZSI6ImNvbXBhbnkiLCJpYXQiOjE3NzI4MjI2MzIsImV4cCI6MTc3MzQyNzQzMn0.1YKpAscRwsbbGZnSZengvDD2qZJ2M1UTpyeiVDCVcQo
-# отриманий id при реєстрації
-@companyId = 69ab204873b5a8fc2b2fb3ad
+# токен компанії
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImNvbXBhbnlAdGVjaGNvcnAuY29tIiwiaWQiOiI2OWFiMzY2NGE0NzY0MmEyNzFiMWUxMTAiLCJ1c2VyVHlwZSI6ImNvbXBhbnkiLCJpYXQiOjE3NzI4MjgyNjAsImV4cCI6MTc3MzQzMzA2MH0.Q5rzoCbl-JtS1BCamr3zmj0LQVpjuqZJatbTFdH0kug
+# айді компанії
+@companyId = 69ab3664a47642a271b1e110
 
 ###
+# @name inviteEmployeeReq
+POST {{baseUrl}}/companies/invite-employee
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "email": "employee@techcorp.com",
+  "name": "Jane Smith",
+  "department": "Engineering",
+  "role": "middle"
+}
+
+### 
 GET {{baseUrl}}/companies
 Authorization: Bearer {{token}}
 
-###
+### Отримати компанію за ID
 GET {{baseUrl}}/companies/{{companyId}}
 Authorization: Bearer {{token}}
 
-###
+### ПЕРЕВІРКА: Оновити дані компанії
 PATCH {{baseUrl}}/companies/{{companyId}}
 Authorization: Bearer {{token}}
 Content-Type: application/json
@@ -25,15 +38,9 @@ Content-Type: application/json
 }
 
 ###
-DELETE {{baseUrl}}/companies/{{companyId}}
+GET {{baseUrl}}/companies/{{companyId}}
 Authorization: Bearer {{token}}
 
 ###
-# @name inviteEmployeeReq
-POST {{baseUrl}}/companies/invite-employee
+DELETE {{baseUrl}}/companies/{{companyId}}
 Authorization: Bearer {{token}}
-Content-Type: application/json
-
-{
-  "email": "employee@techcorp.com"
-}

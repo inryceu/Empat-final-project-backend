@@ -1,4 +1,4 @@
-import { IsEmail, IsString, IsArray, IsEnum } from 'class-validator';
+import { IsEmail, IsString, IsEnum } from 'class-validator';
 import { EmployeeRole } from 'src/modules/employees/dto/enums';
 
 export class CreateInviteDto {
@@ -8,7 +8,6 @@ export class CreateInviteDto {
   @IsString()
   name: string;
 
-  @IsArray()
   @IsString({ each: true })
   department: string;
 

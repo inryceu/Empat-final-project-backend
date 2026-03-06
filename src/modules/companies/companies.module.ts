@@ -5,6 +5,7 @@ import { CompaniesController } from './companies.controller';
 import { Company, CompanySchema } from './schemas/company.schema';
 import { AuthModule } from '../auth/auth.module';
 import { Invite, InviteSchema } from './schemas/invite.schema';
+import { EmployeesModule } from '../employees/employee.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { Invite, InviteSchema } from './schemas/invite.schema';
       { name: Invite.name, schema: InviteSchema },
     ]),
     forwardRef(() => AuthModule),
+    forwardRef(() => EmployeesModule),
   ],
   controllers: [CompaniesController],
   providers: [CompaniesService],
