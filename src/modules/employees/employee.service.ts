@@ -28,7 +28,7 @@ export class EmployeesService {
   async findById(id: string): Promise<EmployeesDocument> {
     const employee = await this.employeeModel
       .findById(id)
-      .select('-password')
+      .select('-password -__v')
       .exec();
     if (!employee) {
       throw new NotFoundException(`Співробітника з ID ${id} не знайдено`);

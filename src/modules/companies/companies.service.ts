@@ -1,18 +1,29 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
+import * as crypto from 'crypto';
+
 import { Company, CompanyDocument } from './schemas/company.schema';
+import { Invite, InviteDocument } from './schemas/invite.schema';
 import { CreateCompanyDto } from './dto/create-company.dto';
+import { CreateInviteDto } from './dto/create-invite.dto';
+import { EmployeesService } from '../employees/employee.service';
 
 @Injectable()
 export class CompaniesService {
   constructor(
     @InjectModel(Company.name) private companyModel: Model<CompanyDocument>,
+    @InjectModel(Invite.name) private inviteModel: Model<InviteDocument>,
+    private employeesService: EmployeesService,
   ) {}
 
   private serializeCompany(company: CompanyDocument): any {
-    const { _id, password, ...rest } = company.toObject();
+    const { _id, password, __v, ...rest } = company.toObject();
     return { id: _id.toString(), ...rest };
   }
 
@@ -47,7 +58,7 @@ export class CompaniesService {
     }
 
     const updatedCompany = await this.companyModel
-      .findByIdAndUpdate(id, { $set: updateData }, { new: true })
+      .findByIdAndUpdate(id, { $set: updateData }, { returnDocument: 'after' })
       .exec();
 
     if (!updatedCompany)
@@ -58,5 +69,41 @@ export class CompaniesService {
   async delete(id: string): Promise<void> {
     const result = await this.companyModel.findByIdAndDelete(id).exec();
     if (!result) throw new NotFoundException(`Company with ID ${id} not found`);
+  }
+
+  async inviteEmployee(companyId: string, dto: CreateInviteDto) {
+    const existingEmployee = await this.employeesService.findByEmail(dto.email);
+    if (existingEmployee)
+      throw new ConflictException('Співробітник з таким email вже існує');
+
+    const existingInvite = await this.inviteModel
+      .findOne({ email: dto.email })
+      .exec();
+    if (existingInvite)
+      throw new ConflictException('Запрошення на цю пошту вже відправлено');
+
+    const inviteToken = crypto.randomBytes(32).toString('hex');
+
+    await this.inviteModel.create({
+      companyId,
+      email: dto.email,
+      name: dto.name,
+      department: dto.department,
+      role: dto.role,
+      token: inviteToken,
+    });
+
+    return {
+      message: 'Запрошення успішно створено',
+      inviteLink: `${process.env.FRONTEND_URL}/register-employee?token=${inviteToken}`,
+    };
+  }
+
+  async findInviteByToken(token: string) {
+    return this.inviteModel.findOne({ token }).exec();
+  }
+
+  async deleteInvite(inviteId: string) {
+    await this.inviteModel.findByIdAndDelete(inviteId).exec();
   }
 }

@@ -20,6 +20,7 @@ import { CompaniesService } from './companies.service';
 import { AuthService } from '../auth/auth.service';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { Company } from './company.interface';
+import { CreateInviteDto } from './dto/create-invite.dto';
 
 import {
   ApiFindAllCompanies,
@@ -71,7 +72,7 @@ export class CompaniesController {
 
   @Post('invite-employee')
   @ApiInviteEmployee()
-  async inviteEmployee(@Req() req, @Body('email') employeeEmail: string) {
+  async inviteEmployee(@Req() req, @Body() dto: CreateInviteDto) {
     if (req.user.userType !== 'company') {
       throw new ForbiddenException(
         'Тільки компанії можуть запрошувати співробітників',
@@ -80,15 +81,6 @@ export class CompaniesController {
 
     const companyId = req.user._id?.toString() || req.user.id;
 
-    const inviteToken = await this.authService.generateInviteToken(
-      companyId,
-      employeeEmail,
-    );
-
-    // TODO: Відправити inviteToken на employeeEmail через сервіс розсилки (наприклад, SendGrid/Nodemailer)
-    return {
-      message: 'Запрошення створено',
-      inviteLink: `${process.env.FRONTEND_URL}/register-employee?token=${inviteToken}&email=${employeeEmail}`,
-    };
+    return this.companiesService.inviteEmployee(companyId, dto);
   }
 }

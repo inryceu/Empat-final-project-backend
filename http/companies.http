@@ -1,0 +1,46 @@
+@host = http://localhost
+@baseUrl = {{host}}/api/v1
+
+# токен компанії
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImNvbXBhbnlAdGVjaGNvcnAuY29tIiwiaWQiOiI2OWFiMzY2NGE0NzY0MmEyNzFiMWUxMTAiLCJ1c2VyVHlwZSI6ImNvbXBhbnkiLCJpYXQiOjE3NzI4MjgyNjAsImV4cCI6MTc3MzQzMzA2MH0.Q5rzoCbl-JtS1BCamr3zmj0LQVpjuqZJatbTFdH0kug
+# айді компанії
+@companyId = 69ab3664a47642a271b1e110
+
+###
+# @name inviteEmployeeReq
+POST {{baseUrl}}/companies/invite-employee
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "email": "employee@techcorp.com",
+  "name": "Jane Smith",
+  "department": "Engineering",
+  "role": "middle"
+}
+
+### 
+GET {{baseUrl}}/companies
+Authorization: Bearer {{token}}
+
+###
+GET {{baseUrl}}/companies/{{companyId}}
+Authorization: Bearer {{token}}
+
+###
+PATCH {{baseUrl}}/companies/{{companyId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Tech Corp Updated",
+  "size": "200-500"
+}
+
+###
+GET {{baseUrl}}/companies/{{companyId}}
+Authorization: Bearer {{token}}
+
+###
+DELETE {{baseUrl}}/companies/{{companyId}}
+Authorization: Bearer {{token}}

@@ -19,11 +19,13 @@ export class Employee {
 
   @Prop({
     required: true,
-    enum: ['trainee', 'junior', 'middle', 'senior', 'lead'],
+    enum: ['trainee', 'junior', 'middle', 'senior', 'lead', 'head', 'CTO'],
   })
   role: string;
 
-  @Prop()
+  @Prop({
+    enum: ['male', 'female', 'other', 'preferNotToSay'],
+  })
   gender: string;
 
   @Prop()

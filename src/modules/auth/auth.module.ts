@@ -3,14 +3,14 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { UsersModule } from '../employees/employee.module';
+import { EmployeesModule } from '../employees/employee.module';
 import { GoogleStrategy } from './strategies/google.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { CompaniesModule } from '../companies/companies.module';
 
 @Module({
   imports: [
-    UsersModule,
+    EmployeesModule,
     PassportModule,
     forwardRef(() => CompaniesModule),
     JwtModule.register({

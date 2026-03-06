@@ -45,7 +45,7 @@ export class AuthController {
     const userType = req.user.userType || 'employee';
     const { accessToken } = await this.authService.login(req.user, userType);
     const profile = await this.authService.getProfile(
-      req.user.sub,
+      req.user.id,
       req.user.userType,
     );
     return { accessToken, ...profile };
@@ -87,6 +87,6 @@ export class AuthController {
   @UseGuards(AuthGuard('jwt'))
   @ApiGetProfile()
   async getProfile(@Req() req) {
-    return this.authService.getProfile(req.user.sub, req.user.userType);
+    return this.authService.getProfile(req.user.id, req.user.userType);
   }
 }

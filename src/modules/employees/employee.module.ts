@@ -14,4 +14,4 @@ import { Employee, EmployeeSchema } from './schemas/employee.schema';
   providers: [EmployeesService],
   exports: [EmployeesService],
 })
-export class UsersModule {}
+export class EmployeesModule {}
