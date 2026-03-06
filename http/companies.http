@@ -2,9 +2,9 @@
 @baseUrl = {{host}}/api/v1
 
 # отриманий токен при реєстрації
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImNvbXBhbnlAdGVjaGNvcnAuY29tIiwiaWQiOiI2OWFiMTk3ZTJmOWExOGI2MzUwZTg4YTMiLCJ1c2VyVHlwZSI6ImNvbXBhbnkiLCJpYXQiOjE3NzI4MjA4NjIsImV4cCI6MTc3MzQyNTY2Mn0.IRAubgJhrIcTNTVtX5VFGvs1Yk67frkvEKhxK-7aLdI
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImNvbXBhbnlAdGVjaGNvcnAuY29tIiwiaWQiOiI2OWFiMjA0ODczYjVhOGZjMmIyZmIzYWQiLCJ1c2VyVHlwZSI6ImNvbXBhbnkiLCJpYXQiOjE3NzI4MjI2MzIsImV4cCI6MTc3MzQyNzQzMn0.1YKpAscRwsbbGZnSZengvDD2qZJ2M1UTpyeiVDCVcQo
 # отриманий id при реєстрації
-@companyId = 69ab197e2f9a18b6350e88a3
+@companyId = 69ab204873b5a8fc2b2fb3ad
 
 ###
 GET {{baseUrl}}/companies

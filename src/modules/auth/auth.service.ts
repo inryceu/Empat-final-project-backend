@@ -33,17 +33,17 @@ export class AuthService {
     const accessToken = this.jwtService.sign(payload);
 
     const entityData = entity.toObject ? entity.toObject() : { ...entity };
-    delete entityData.password; 
-    delete entityData.__v;   
+    delete entityData.password;
+    delete entityData.__v;
 
     const res = {
       accessToken,
       user: {
         ...entityData,
-        id: entity._id?.toString() || entity.id, 
-        userType, 
+        id: entity._id?.toString() || entity.id,
+        userType,
       },
-    }; 
+    };
     delete res.user._id;
     return res;
   }
@@ -68,16 +68,22 @@ export class AuthService {
     try {
       payload = this.jwtService.verify(dto.inviteToken);
     } catch (e) {
-      throw new ForbiddenException('Недійсний або прострочений токен запрошення');
+      throw new ForbiddenException(
+        'Недійсний або прострочений токен запрошення',
+      );
     }
 
     if (payload.email !== dto.email) {
-      throw new ForbiddenException('Цей токен запрошення не належить вказаній пошті');
+      throw new ForbiddenException(
+        'Цей токен запрошення не належить вказаній пошті',
+      );
     }
 
     const existing = await this.employeesService.findByEmail(dto.email);
     if (existing) {
-      throw new ConflictException('Співробітник з таким email вже зареєстрований.');
+      throw new ConflictException(
+        'Співробітник з таким email вже зареєстрований.',
+      );
     }
 
     const hashedPassword = await bcrypt.hash(dto.password, 10);
@@ -99,12 +105,16 @@ export class AuthService {
       const payload = ticket.getPayload();
 
       if (!payload || !payload.email) {
-        throw new UnauthorizedException('Не вдалося розшифрувати Google токен або відсутній email');
+        throw new UnauthorizedException(
+          'Не вдалося розшифрувати Google токен або відсутній email',
+        );
       }
 
       return this.handleGoogleLogin(payload.email);
     } catch (error) {
-      throw new UnauthorizedException('Невалідний або прострочений Google токен');
+      throw new UnauthorizedException(
+        'Невалідний або прострочений Google токен',
+      );
     }
   }
 
@@ -128,17 +138,25 @@ export class AuthService {
         : this.login(employee, 'employee');
     }
 
-    throw new UnauthorizedException('Акаунт з таким email не знайдено. Будь ласка, зареєструйтесь.');
+    throw new UnauthorizedException(
+      'Акаунт з таким email не знайдено. Будь ласка, зареєструйтесь.',
+    );
   }
 
   async validateEmployee(dto: LoginDto) {
     const employee = await this.employeesService.findByEmail(dto.email);
     if (!employee || !employee.password) {
-      throw new UnauthorizedException('Невірний email або пароль (або вхід через Google)');
+      throw new UnauthorizedException(
+        'Невірний email або пароль (або вхід через Google)',
+      );
     }
 
-    const isPasswordValid = await bcrypt.compare(dto.password, employee.password);
-    if (!isPasswordValid) throw new UnauthorizedException('Невірний email або пароль');
+    const isPasswordValid = await bcrypt.compare(
+      dto.password,
+      employee.password,
+    );
+    if (!isPasswordValid)
+      throw new UnauthorizedException('Невірний email або пароль');
 
     return employee;
   }
@@ -149,8 +167,12 @@ export class AuthService {
       throw new UnauthorizedException('Невірні дані для входу');
     }
 
-    const isPasswordValid = await bcrypt.compare(dto.password, company.password);
-    if (!isPasswordValid) throw new UnauthorizedException('Невірні дані для входу');
+    const isPasswordValid = await bcrypt.compare(
+      dto.password,
+      company.password,
+    );
+    if (!isPasswordValid)
+      throw new UnauthorizedException('Невірні дані для входу');
 
     return company;
   }
@@ -165,7 +187,9 @@ export class AuthService {
   async getProfile(userId: string, userType: string) {
     if (userType === 'company') {
       const company = await this.companiesService.findOne(userId);
-      const companyData = company.toObject ? company.toObject() : { ...company };
+      const companyData = company.toObject
+        ? company.toObject()
+        : { ...company };
       delete companyData.password;
       return {
         ...companyData,
@@ -175,7 +199,9 @@ export class AuthService {
     }
 
     const employee = await this.employeesService.findById(userId);
-    const employeeData = employee.toObject ? employee.toObject() : { ...employee };
+    const employeeData = employee.toObject
+      ? employee.toObject()
+      : { ...employee };
     delete employeeData.password;
     return {
       ...employeeData,
