@@ -10,7 +10,7 @@ export class CreateInviteDto {
 
   @IsArray()
   @IsString({ each: true })
-  departments: string[];
+  department: string;
 
   @IsEnum(EmployeeRole)
   role: EmployeeRole;

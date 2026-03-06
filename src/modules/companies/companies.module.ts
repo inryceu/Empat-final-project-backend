@@ -8,7 +8,10 @@ import { Invite, InviteSchema } from './schemas/invite.schema';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: Company.name, schema: CompanySchema }, { name: Invite.name, schema: InviteSchema },]),
+    MongooseModule.forFeature([
+      { name: Company.name, schema: CompanySchema },
+      { name: Invite.name, schema: InviteSchema },
+    ]),
     forwardRef(() => AuthModule),
   ],
   controllers: [CompaniesController],

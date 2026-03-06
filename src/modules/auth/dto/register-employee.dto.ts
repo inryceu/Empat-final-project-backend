@@ -1,37 +1,22 @@
-import {
-  IsString,
-  IsEmail,
-  MinLength,
-  IsEnum,
-  IsNotEmpty,
-} from 'class-validator';
+import { IsString, MinLength, IsEnum, IsOptional } from 'class-validator';
+import { Gender } from '../../employees/dto/enums';
 
 export class RegisterEmployeeDto {
   @IsString()
-  name: string;
-
-  @IsEmail()
-  email: string;
+  token: string;
 
   @IsString()
-  @MinLength(8)
+  @MinLength(8, { message: 'Пароль має містити мінімум 8 символів' })
   password: string;
 
-  @IsString()
-  department: string;
-
-  @IsEnum(['trainee', 'junior', 'middle', 'senior', 'lead'])
-  role: 'trainee' | 'junior' | 'middle' | 'senior' | 'lead';
+  @IsEnum(Gender)
+  gender: Gender;
 
   @IsString()
-  gender: string;
+  @IsOptional()
+  hobbies?: string;
 
   @IsString()
-  hobbies: string;
-
-  @IsString()
-  favoriteAnimal: string;
-
-  @IsNotEmpty()
-  inviteToken: string;
+  @IsOptional()
+  favoriteAnimal?: string;
 }

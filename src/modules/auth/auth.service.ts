@@ -64,22 +64,15 @@ export class AuthService {
   }
 
   async registerEmployee(dto: RegisterEmployeeDto) {
-    let payload;
-    try {
-      payload = this.jwtService.verify(dto.inviteToken);
-    } catch (e) {
+    const invite = await this.companiesService.findInviteByToken(dto.token);
+
+    if (!invite) {
       throw new ForbiddenException(
-        'Недійсний або прострочений токен запрошення',
+        'Недійсний токен або запрошення вже було використано',
       );
     }
 
-    if (payload.email !== dto.email) {
-      throw new ForbiddenException(
-        'Цей токен запрошення не належить вказаній пошті',
-      );
-    }
-
-    const existing = await this.employeesService.findByEmail(dto.email);
+    const existing = await this.employeesService.findByEmail(invite.email);
     if (existing) {
       throw new ConflictException(
         'Співробітник з таким email вже зареєстрований.',
@@ -87,11 +80,21 @@ export class AuthService {
     }
 
     const hashedPassword = await bcrypt.hash(dto.password, 10);
+
     const newEmployee = await this.employeesService.create({
-      ...dto,
+      email: invite.email,
+      name: invite.name,
+      companyId: invite.companyId,
+      department: invite.department,
+      role: invite.role,
+
       password: hashedPassword,
-      companyId: payload.companyId,
+      gender: dto.gender,
+      hobbies: dto.hobbies,
+      favoriteAnimal: dto.favoriteAnimal,
     });
+
+    await this.companiesService.deleteInvite(invite._id.toString());
 
     return this.login(newEmployee, 'employee');
   }

@@ -1,11 +1,15 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 
 import { Company, CompanyDocument } from './schemas/company.schema';
-import { Invite, InviteDocument } from './schemas/invite.schema'; 
+import { Invite, InviteDocument } from './schemas/invite.schema';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { CreateInviteDto } from './dto/create-invite.dto';
 import { EmployeesService } from '../employees/employee.service';
@@ -14,7 +18,7 @@ import { EmployeesService } from '../employees/employee.service';
 export class CompaniesService {
   constructor(
     @InjectModel(Company.name) private companyModel: Model<CompanyDocument>,
-    @InjectModel(Invite.name) private inviteModel: Model<InviteDocument>, 
+    @InjectModel(Invite.name) private inviteModel: Model<InviteDocument>,
     private employeesService: EmployeesService,
   ) {}
 
@@ -69,18 +73,22 @@ export class CompaniesService {
 
   async inviteEmployee(companyId: string, dto: CreateInviteDto) {
     const existingEmployee = await this.employeesService.findByEmail(dto.email);
-    if (existingEmployee) throw new ConflictException('Співробітник з таким email вже існує');
-    
-    const existingInvite = await this.inviteModel.findOne({ email: dto.email }).exec();
-    if (existingInvite) throw new ConflictException('Запрошення на цю пошту вже відправлено');
+    if (existingEmployee)
+      throw new ConflictException('Співробітник з таким email вже існує');
 
-    const inviteToken = crypto.randomBytes(32).toString('hex'); 
+    const existingInvite = await this.inviteModel
+      .findOne({ email: dto.email })
+      .exec();
+    if (existingInvite)
+      throw new ConflictException('Запрошення на цю пошту вже відправлено');
+
+    const inviteToken = crypto.randomBytes(32).toString('hex');
 
     await this.inviteModel.create({
       companyId,
       email: dto.email,
       name: dto.name,
-      departments: dto.departments,
+      department: dto.department,
       role: dto.role,
       token: inviteToken,
     });
@@ -89,5 +97,13 @@ export class CompaniesService {
       message: 'Запрошення успішно створено',
       inviteLink: `${process.env.FRONTEND_URL}/register-employee?token=${inviteToken}`,
     };
+  }
+
+  async findInviteByToken(token: string) {
+    return this.inviteModel.findOne({ token }).exec();
+  }
+
+  async deleteInvite(inviteId: string) {
+    await this.inviteModel.findByIdAndDelete(inviteId).exec();
   }
 }
