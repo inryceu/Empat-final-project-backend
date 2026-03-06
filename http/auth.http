@@ -2,7 +2,7 @@
 @baseUrl = {{host}}/api/v1
 
 # отриманий токен при інвайті
-@inviteToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImVtcGxveWVlQHRlY2hjb3JwLmNvbSIsImNvbXBhbnlJZCI6IjY5YWIwMzdmZDM4ZmNhY2M5ZTM4ZTA4YSIsInB1cnBvc2UiOiJpbnZpdGUiLCJpYXQiOjE3NzI4MTU2NjIsImV4cCI6MTc3MzQyMDQ2Mn0.6JRtU1SBrg3kYBiqjas0BdoP-OckE2_TXkC_aetYQUs
+@inviteToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImVtcGxveWVlQHRlY2hjb3JwLmNvbSIsImNvbXBhbnlJZCI6IjY5YWIxOTdlMmY5YTE4YjYzNTBlODhhMyIsInB1cnBvc2UiOiJpbnZpdGUiLCJpYXQiOjE3NzI4MjA4OTksImV4cCI6MTc3MzQyNTY5OX0.4t-rc1TDq6-1UZpKpD8RqoWz_hG4UeY53clmq9GdVqQ
 
 ###
 # @name registerCompanyReq

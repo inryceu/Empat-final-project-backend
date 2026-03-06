@@ -45,7 +45,7 @@ export class AuthController {
     const userType = req.user.userType || 'employee';
     const { accessToken } = await this.authService.login(req.user, userType);
     const profile = await this.authService.getProfile(
-      req.user.sub,
+      req.user.id,
       req.user.userType,
     );
     return { accessToken, ...profile };

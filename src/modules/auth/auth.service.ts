@@ -27,7 +27,7 @@ export class AuthService {
   async login(entity: any, userType: 'employee' | 'company') {
     const payload = {
       email: entity.email,
-      sub: entity._id?.toString() || entity.id,
+      id: entity._id?.toString() || entity.id,
       userType,
     };
     const accessToken = this.jwtService.sign(payload);
@@ -35,16 +35,17 @@ export class AuthService {
     const entityData = entity.toObject ? entity.toObject() : { ...entity };
     delete entityData.password; 
     delete entityData.__v;   
-    delete entityData._id;
 
-    return {
+    const res = {
       accessToken,
       user: {
         ...entityData,
         id: entity._id?.toString() || entity.id, 
         userType, 
       },
-    };
+    }; 
+    delete res.user._id;
+    return res;
   }
 
   async registerCompany(dto: RegisterCompanyDto) {

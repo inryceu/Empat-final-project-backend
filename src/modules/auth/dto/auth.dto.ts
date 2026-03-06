@@ -8,7 +8,7 @@ export class LoginDto {
 
   @ApiProperty({ example: 'securePassword123' })
   @IsString()
-  @MinLength(6, { message: 'Пароль має містити мінімум 6 символів' })
+  @MinLength(8, { message: 'Пароль має містити мінімум 6 символів' })
   password: string;
 }
 
