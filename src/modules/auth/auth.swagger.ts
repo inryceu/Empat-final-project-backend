@@ -31,13 +31,11 @@ export function ApiGoogleAuthCallback() {
     }),
     ApiResponse({
       status: 302,
-      description:
-        'Редирект на FRONTEND_URL з JWT токеном (або повернення JSON, залежно від вашої реалізації).',
+      description: 'Редирект на FRONTEND_URL з JWT токеном.',
     }),
     ApiResponse({
       status: 401,
-      description:
-        'Акаунт з таким email не знайдено (користувач не зареєстрований).',
+      description: 'Акаунт з таким email не знайдено.',
     }),
   );
 }
@@ -46,46 +44,49 @@ export function ApiGoogleAuthMobile() {
   return applyDecorators(
     ApiOperation({
       summary: 'Google Авторизація для мобільних додатків',
-      description:
-        'Приймає idToken від мобільного додатка, верифікує його і повертає JWT бекенда. Тільки для входу.',
+      description: 'Приймає idToken від мобільного додатка для входу.',
     }),
-    ApiBody({ type: GoogleMobileLoginDto }),
-    ApiResponse({
-      status: 201,
-      description: 'Успішна авторизація. Повертає accessToken та профіль.',
+    ApiBody({
+      type: GoogleMobileLoginDto,
+      schema: {
+        example: {
+          idToken: 'eyJhbGciOiJSUzI1NiIsImtpZCI6I... (ваш Google токен)',
+        },
+      },
     }),
-    ApiResponse({
-      status: 401,
-      description: 'Невалідний Google токен або акаунт не знайдено.',
-    }),
+    ApiResponse({ status: 201, description: 'Успішна авторизація.' }),
+    ApiResponse({ status: 401, description: 'Невалідний Google токен.' }),
   );
 }
 
 export function ApiRegisterEmployee() {
   return applyDecorators(
     ApiOperation({
-      summary: 'Реєстрація співробітника (за інвайтом)',
+      summary: 'Завершення реєстрації співробітника',
       description:
-        "Створює акаунт співробітника. Обов'язково вимагає валідний inviteToken, згенерований компанією.",
+        'Працівник передає token (з email-запрошення), свій пароль та особисті дані.',
     }),
-    ApiBody({ type: RegisterEmployeeDto }),
+    ApiBody({
+      type: RegisterEmployeeDto,
+      description: 'Дані для реєстрації',
+      schema: {
+        example: {
+          token:
+            '74f817d8b0c446aa738fbcedc601c292199888ea101c202da6558ec9e890e805',
+          password: 'Password123!',
+          gender: 'female',
+          hobbies: 'Читання, Подорожі',
+          favoriteAnimal: 'Кіт',
+        },
+      },
+    }),
     ApiResponse({
       status: 201,
-      description: 'Співробітника успішно зареєстровано. Повертає JWT токен.',
+      description: 'Успішна реєстрація. Повертає JWT.',
     }),
-    ApiResponse({
-      status: 400,
-      description: 'Помилка валідації вхідних даних.',
-    }),
-    ApiResponse({
-      status: 403,
-      description:
-        'Недійсний, прострочений токен запрошення, або email не співпадає.',
-    }),
-    ApiResponse({
-      status: 409,
-      description: 'Співробітник з таким email вже існує.',
-    }),
+    ApiResponse({ status: 400, description: 'Помилка валідації.' }),
+    ApiResponse({ status: 403, description: 'Недійсний токен.' }),
+    ApiResponse({ status: 409, description: 'Співробітник вже існує.' }),
   );
 }
 
@@ -93,17 +94,22 @@ export function ApiLoginEmployee() {
   return applyDecorators(
     ApiOperation({
       summary: 'Вхід співробітника',
-      description: 'Вхід за email та паролем для співробітників.',
+      description: 'Вхід за email та паролем.',
     }),
-    ApiBody({ type: LoginDto }),
+    ApiBody({
+      type: LoginDto,
+      schema: {
+        example: {
+          email: 'employee@techcorp.com',
+          password: 'Password123!',
+        },
+      },
+    }),
     ApiResponse({
       status: 201,
       description: 'Успішний вхід. Повертає JWT токен.',
     }),
-    ApiResponse({
-      status: 401,
-      description: 'Невірний email, пароль, або акаунт створено через Google.',
-    }),
+    ApiResponse({ status: 401, description: 'Невірний email або пароль.' }),
   );
 }
 
@@ -113,15 +119,24 @@ export function ApiRegisterCompany() {
       summary: 'Реєстрація нової компанії',
       description: 'Відкрита реєстрація для нових компаній (B2B).',
     }),
-    ApiBody({ type: RegisterCompanyDto }),
+    ApiBody({
+      type: RegisterCompanyDto,
+      schema: {
+        example: {
+          name: 'Tech Corp',
+          industry: 'IT',
+          size: '51-200',
+          contactName: 'John Doe',
+          email: 'company@techcorp.com',
+          password: 'Password123!',
+        },
+      },
+    }),
     ApiResponse({
       status: 201,
-      description: 'Компанію успішно зареєстровано. Повертає JWT токен.',
+      description: 'Компанію успішно зареєстровано.',
     }),
-    ApiResponse({
-      status: 400,
-      description: 'Помилка валідації вхідних даних.',
-    }),
+    ApiResponse({ status: 400, description: 'Помилка валідації.' }),
     ApiResponse({
       status: 409,
       description: 'Компанія з таким email вже існує.',
@@ -133,9 +148,17 @@ export function ApiLoginCompany() {
   return applyDecorators(
     ApiOperation({
       summary: 'Вхід компанії',
-      description: 'Вхід за email та паролем для представників компанії.',
+      description: 'Вхід за email та паролем для компанії.',
     }),
-    ApiBody({ type: LoginCompanyDto }),
+    ApiBody({
+      type: LoginCompanyDto,
+      schema: {
+        example: {
+          email: 'company@techcorp.com',
+          password: 'Password123!',
+        },
+      },
+    }),
     ApiResponse({
       status: 201,
       description: 'Успішний вхід. Повертає JWT токен.',
@@ -149,13 +172,8 @@ export function ApiGetProfile() {
     ApiBearerAuth(),
     ApiOperation({
       summary: 'Отримати профіль поточного користувача/компанії',
-      description:
-        'Повертає дані профілю на основі переданого Bearer JWT токена. Автоматично визначає тип (компанія чи співробітник).',
     }),
     ApiResponse({ status: 200, description: 'Профіль успішно отримано.' }),
-    ApiResponse({
-      status: 401,
-      description: 'Неавторизовано (відсутній або невалідний токен).',
-    }),
+    ApiResponse({ status: 401, description: 'Неавторизовано.' }),
   );
 }

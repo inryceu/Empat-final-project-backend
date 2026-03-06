@@ -6,15 +6,14 @@ import {
   ApiBody,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { CreateCompanyDto } from './dto/create-company.dto';
 
 const companyExample = {
   id: '65f1a2b3c4d5e6f7a8b9c0d1',
-  name: 'Empat Tech',
-  industry: 'IT & Software Development',
-  size: '50-200 employees',
-  contactName: 'Павло Малуєв',
-  email: 'info@empat.tech',
+  name: 'Tech Corp',
+  industry: 'IT',
+  size: '51-200',
+  contactName: 'John Doe',
+  email: 'company@techcorp.com',
   createdAt: '2026-03-05T10:00:00.000Z',
   updatedAt: '2026-03-05T10:00:00.000Z',
 };
@@ -23,12 +22,7 @@ export function ApiFindAllCompanies() {
   return applyDecorators(
     ApiBearerAuth(),
     ApiOperation({ summary: 'Отримати список усіх компаній' }),
-    ApiResponse({
-      status: 200,
-      description: 'Масив компаній успішно отримано.',
-      schema: { example: [companyExample] },
-    }),
-    ApiResponse({ status: 401, description: 'Неавторизовано.' }),
+    ApiResponse({ status: 200, schema: { example: [companyExample] } }),
   );
 }
 
@@ -36,18 +30,8 @@ export function ApiFindOneCompany() {
   return applyDecorators(
     ApiBearerAuth(),
     ApiOperation({ summary: 'Отримати дані компанії за ID' }),
-    ApiParam({
-      name: 'id',
-      description: 'Унікальний ідентифікатор компанії (ObjectId)',
-      example: '65f1a2b3c4d5e6f7a8b9c0d1',
-    }),
-    ApiResponse({
-      status: 200,
-      description: 'Компанію знайдено.',
-      schema: { example: companyExample },
-    }),
-    ApiResponse({ status: 401, description: 'Неавторизовано.' }),
-    ApiResponse({ status: 404, description: 'Компанію не знайдено.' }),
+    ApiParam({ name: 'id', example: '65f1a2b3c4d5e6f7a8b9c0d1' }),
+    ApiResponse({ status: 200, schema: { example: companyExample } }),
   );
 }
 
@@ -60,18 +44,15 @@ export function ApiUpdateCompany() {
       description: 'Поля для оновлення',
       schema: {
         example: {
-          industry: 'AI Research',
-          contactName: 'Pavlo M.',
+          name: 'Tech Corp Updated',
+          size: '200-500',
         },
       },
     }),
     ApiResponse({
       status: 200,
-      description: 'Дані успішно оновлено.',
-      schema: { example: { ...companyExample, industry: 'AI Research' } },
+      schema: { example: { ...companyExample, name: 'Tech Corp Updated' } },
     }),
-    ApiResponse({ status: 401, description: 'Неавторизовано.' }),
-    ApiResponse({ status: 404, description: 'Компанію не знайдено.' }),
   );
 }
 
@@ -82,11 +63,8 @@ export function ApiDeleteCompany() {
     ApiParam({ name: 'id', example: '65f1a2b3c4d5e6f7a8b9c0d1' }),
     ApiResponse({
       status: 200,
-      description: 'Компанію видалено.',
       schema: { example: { message: 'Company deleted successfully' } },
     }),
-    ApiResponse({ status: 401, description: 'Неавторизовано.' }),
-    ApiResponse({ status: 404, description: 'Компанію не знайдено.' }),
   );
 }
 
@@ -94,29 +72,30 @@ export function ApiInviteEmployee() {
   return applyDecorators(
     ApiBearerAuth(),
     ApiOperation({
-      summary: 'Запросити співробітника',
+      summary: 'Створити запрошення для співробітника',
       description:
-        'Генерує JWT токен запрошення для вказаної електронної пошти. Доступно тільки для акаунтів з типом "company".',
+        'Зберігає дані майбутнього співробітника у "whitelist" та генерує токен.',
     }),
     ApiBody({
-      description: 'Email майбутнього співробітника',
-      schema: { example: { email: 'new.employee@empat.tech' } },
-    }),
-    ApiResponse({
-      status: 201,
-      description: 'Запрошення успішно створено.',
+      description: 'Дані працівника (whitelist)',
       schema: {
         example: {
-          message: 'Запрошення створено',
-          inviteLink:
-            'https://your-frontend.com/register-employee?token=eyJhbG...&email=new.employee@empat.tech',
+          email: 'employee@techcorp.com',
+          name: 'Jane Smith',
+          department: 'Engineering',
+          role: 'middle',
         },
       },
     }),
-    ApiResponse({ status: 401, description: 'Неавторизовано.' }),
     ApiResponse({
-      status: 403,
-      description: 'Заборонено. Тільки компанії можуть створювати запрошення.',
+      status: 201,
+      schema: {
+        example: {
+          message: 'Запрошення успішно створено',
+          inviteLink:
+            'http://localhost:8080/register-employee?token=74f817d8b0c446aa738fbcedc601c292199888ea101c202da6558ec9e890e805',
+        },
+      },
     }),
   );
 }
