@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { EmployeesService } from './employee.service';
-import { UpdateEmployeeDto } from './dto/update-employee.dto';
+import { CompleteRegistrationDto } from '../auth/dto/complete-employee-registration.dto';
 import { AuthGuard } from '@nestjs/passport';
 
 import {
@@ -42,7 +42,7 @@ export class EmployeesController {
   @ApiUpdateEmployee()
   update(
     @Param('id') id: string,
-    @Body() updateEmployeeDto: UpdateEmployeeDto,
+    @Body() updateEmployeeDto: Partial<CompleteRegistrationDto>,
   ) {
     return this.employeesService.update(id, updateEmployeeDto);
   }

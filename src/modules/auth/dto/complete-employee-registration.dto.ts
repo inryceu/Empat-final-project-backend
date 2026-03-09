@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString, MinLength, IsEnum, IsOptional } from 'class-validator';
-import { Gender } from './enums';
+import { Gender } from './register-employee-enums';
 
 export class CompleteRegistrationDto {
   @ApiProperty({

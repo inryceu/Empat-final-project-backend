@@ -11,7 +11,7 @@ import * as bcrypt from 'bcrypt';
 import { OAuth2Client } from 'google-auth-library';
 import { RegisterEmployeeDto } from './dto/register-employee.dto';
 import { RegisterCompanyDto } from './dto/register-company.dto';
-import { LoginDto } from './dto/auth-employee.dto';
+import { LoginDto } from './dto/login-employee.dto';
 import { LoginCompanyDto } from './dto/login-company.dto';
 
 @Injectable()
