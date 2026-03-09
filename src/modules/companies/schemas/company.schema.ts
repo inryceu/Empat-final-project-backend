@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
+import { tr } from 'zod/v4/locales';
 
 export type CompanyDocument = Company & Document;
 
@@ -20,8 +21,11 @@ export class Company {
   @Prop({ required: true, unique: true })
   email: string;
 
-  @Prop({ required: false })
-  password?: string;
+  @Prop({ required: true })
+  password: string;
+
+  @Prop({ type: [String], default: [] })
+  departments: string[];
 }
 
 export const CompanySchema = SchemaFactory.createForClass(Company);
