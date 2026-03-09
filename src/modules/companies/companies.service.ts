@@ -10,7 +10,7 @@ import * as crypto from 'crypto';
 
 import { Company, CompanyDocument } from './schemas/company.schema';
 import { Invite, InviteDocument } from './schemas/invite.schema';
-import { CreateCompanyDto } from './dto/create-company.dto';
+import { CreateCompanyDto } from '../auth/dto/login-company.dto';
 import { CreateInviteDto } from './dto/create-invite.dto';
 import { EmployeesService } from '../employees/employee.service';
 

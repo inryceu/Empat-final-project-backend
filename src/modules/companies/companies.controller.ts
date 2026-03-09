@@ -3,7 +3,7 @@ import {
   Get,
   Patch,
   Delete,
-  Post, // Додав Post
+  Post,
   Body,
   Param,
   ValidationPipe,
@@ -11,14 +11,11 @@ import {
   UseGuards,
   ForbiddenException,
   Req,
-  Inject,
-  forwardRef,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { CompaniesService } from './companies.service';
-import { AuthService } from '../auth/auth.service';
-import { CreateCompanyDto } from './dto/create-company.dto';
+import { RegisterCompanyDto } from '../auth/dto/register-company.dto';
 import { Company } from './company.interface';
 import { CreateInviteDto } from './dto/create-invite.dto';
 
@@ -38,8 +35,6 @@ import {
 export class CompaniesController {
   constructor(
     private readonly companiesService: CompaniesService,
-    @Inject(forwardRef(() => AuthService))
-    private readonly authService: AuthService,
   ) {}
 
   @Get()
@@ -58,7 +53,7 @@ export class CompaniesController {
   @ApiUpdateCompany()
   async update(
     @Param('id') id: string,
-    @Body() updateData: Partial<CreateCompanyDto>,
+    @Body() updateData: Partial<RegisterCompanyDto>,
   ): Promise<Company> {
     return this.companiesService.update(id, updateData);
   }
