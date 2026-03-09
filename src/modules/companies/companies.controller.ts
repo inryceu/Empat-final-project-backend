@@ -3,7 +3,7 @@ import {
   Get,
   Patch,
   Delete,
-  Post, // Додав Post
+  Post,
   Body,
   Param,
   ValidationPipe,
@@ -11,16 +11,14 @@ import {
   UseGuards,
   ForbiddenException,
   Req,
-  Inject,
-  forwardRef,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { CompaniesService } from './companies.service';
-import { AuthService } from '../auth/auth.service';
-import { CreateCompanyDto } from './dto/create-company.dto';
+import { RegisterCompanyDto } from '../auth/dto/register-company.dto';
 import { Company } from './company.interface';
 import { CreateInviteDto } from './dto/create-invite.dto';
+import { AddDepartmentDto } from './dto/add-department.dto'
 
 import {
   ApiFindAllCompanies,
@@ -28,6 +26,8 @@ import {
   ApiUpdateCompany,
   ApiDeleteCompany,
   ApiInviteEmployee,
+  ApiAddDepartment,
+  ApiGetDepartments
 } from './companies.swagger';
 
 @ApiTags('Companies - Компанії')
@@ -38,8 +38,6 @@ import {
 export class CompaniesController {
   constructor(
     private readonly companiesService: CompaniesService,
-    @Inject(forwardRef(() => AuthService))
-    private readonly authService: AuthService,
   ) {}
 
   @Get()
@@ -58,7 +56,7 @@ export class CompaniesController {
   @ApiUpdateCompany()
   async update(
     @Param('id') id: string,
-    @Body() updateData: Partial<CreateCompanyDto>,
+    @Body() updateData: Partial<RegisterCompanyDto>,
   ): Promise<Company> {
     return this.companiesService.update(id, updateData);
   }
@@ -68,6 +66,34 @@ export class CompaniesController {
   async delete(@Param('id') id: string): Promise<{ message: string }> {
     await this.companiesService.delete(id);
     return { message: 'Company deleted successfully' };
+  }
+
+  @Get('me/departments')
+  @ApiGetDepartments() 
+  async getDepartments(@Req() req): Promise<string[]> {
+    if (req.user.userType !== 'company') {
+      throw new ForbiddenException('Тільки компанії мають доступ до своїх відділів');
+    }
+    const companyId = req.user._id?.toString() || req.user.id;
+    return this.companiesService.getDepartments(companyId);
+  }
+
+  @Post('me/departments')
+  @ApiAddDepartment() 
+  async addDepartment(
+    @Req() req,
+    @Body() dto: AddDepartmentDto,
+  ): Promise<{ message: string; departments: string[] }> {
+    if (req.user.userType !== 'company') {
+      throw new ForbiddenException('Тільки компанії можуть створювати відділи');
+    }
+    const companyId = req.user._id?.toString() || req.user.id;
+    const updatedDepartments = await this.companiesService.addDepartment(companyId, dto.name);
+    
+    return {
+      message: 'Відділ успішно додано',
+      departments: updatedDepartments,
+    };
   }
 
   @Post('invite-employee')

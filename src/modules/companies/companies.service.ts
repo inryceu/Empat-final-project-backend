@@ -10,7 +10,7 @@ import * as crypto from 'crypto';
 
 import { Company, CompanyDocument } from './schemas/company.schema';
 import { Invite, InviteDocument } from './schemas/invite.schema';
-import { CreateCompanyDto } from './dto/create-company.dto';
+import { RegisterCompanyDto } from '../auth/dto/register-company.dto';
 import { CreateInviteDto } from './dto/create-invite.dto';
 import { EmployeesService } from '../employees/employee.service';
 
@@ -27,7 +27,7 @@ export class CompaniesService {
     return { id: _id.toString(), ...rest };
   }
 
-  async create(createCompanyDto: Partial<CreateCompanyDto>): Promise<any> {
+  async create(createCompanyDto: Partial<RegisterCompanyDto>): Promise<any> {
     const newCompany = new this.companyModel(createCompanyDto);
     const savedCompany = await newCompany.save();
     return this.serializeCompany(savedCompany);
@@ -51,7 +51,7 @@ export class CompaniesService {
 
   async update(
     id: string,
-    updateData: Partial<CreateCompanyDto>,
+    updateData: Partial<RegisterCompanyDto>,
   ): Promise<any> {
     if (updateData.password) {
       updateData.password = await bcrypt.hash(updateData.password, 10);
@@ -69,6 +69,31 @@ export class CompaniesService {
   async delete(id: string): Promise<void> {
     const result = await this.companyModel.findByIdAndDelete(id).exec();
     if (!result) throw new NotFoundException(`Company with ID ${id} not found`);
+  }
+
+  async getDepartments(companyId: string): Promise<string[]> {
+    const company = await this.companyModel.findById(companyId).exec();
+    if (!company) {
+      throw new NotFoundException('Компанію не знайдено');
+    }
+    return company.departments || [];
+  }
+
+  async addDepartment(companyId: string, departmentName: string): Promise<string[]> {
+    const company = await this.companyModel.findById(companyId).exec();
+    if (!company) {
+      throw new NotFoundException('Компанію не знайдено');
+    }
+
+    const normalizedName = departmentName.trim();
+    if (company.departments.includes(normalizedName)) {
+      throw new ConflictException(`Відділ "${normalizedName}" вже існує у вашій компанії`);
+    }
+
+    company.departments.push(normalizedName);
+    await company.save();
+
+    return company.departments;
   }
 
   async inviteEmployee(companyId: string, dto: CreateInviteDto) {
