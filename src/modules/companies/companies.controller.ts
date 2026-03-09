@@ -18,6 +18,7 @@ import { CompaniesService } from './companies.service';
 import { RegisterCompanyDto } from '../auth/dto/register-company.dto';
 import { Company } from './company.interface';
 import { CreateInviteDto } from './dto/create-invite.dto';
+import { AddDepartmentDto } from './dto/add-department.dto'
 
 import {
   ApiFindAllCompanies,
@@ -25,6 +26,8 @@ import {
   ApiUpdateCompany,
   ApiDeleteCompany,
   ApiInviteEmployee,
+  ApiAddDepartment,
+  ApiGetDepartments
 } from './companies.swagger';
 
 @ApiTags('Companies - Компанії')
@@ -63,6 +66,34 @@ export class CompaniesController {
   async delete(@Param('id') id: string): Promise<{ message: string }> {
     await this.companiesService.delete(id);
     return { message: 'Company deleted successfully' };
+  }
+
+  @Get('me/departments')
+  @ApiGetDepartments() 
+  async getDepartments(@Req() req): Promise<string[]> {
+    if (req.user.userType !== 'company') {
+      throw new ForbiddenException('Тільки компанії мають доступ до своїх відділів');
+    }
+    const companyId = req.user._id?.toString() || req.user.id;
+    return this.companiesService.getDepartments(companyId);
+  }
+
+  @Post('me/departments')
+  @ApiAddDepartment() 
+  async addDepartment(
+    @Req() req,
+    @Body() dto: AddDepartmentDto,
+  ): Promise<{ message: string; departments: string[] }> {
+    if (req.user.userType !== 'company') {
+      throw new ForbiddenException('Тільки компанії можуть створювати відділи');
+    }
+    const companyId = req.user._id?.toString() || req.user.id;
+    const updatedDepartments = await this.companiesService.addDepartment(companyId, dto.name);
+    
+    return {
+      message: 'Відділ успішно додано',
+      departments: updatedDepartments,
+    };
   }
 
   @Post('invite-employee')

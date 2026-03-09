@@ -7,7 +7,7 @@ import {
 } from '@nestjs/swagger';
 
 import { LoginDto, GoogleMobileLoginDto } from './dto/auth-employee.dto';
-import { RegisterEmployeeDto } from './dto/register-employee-in-company.dto';
+import { RegisterEmployeeDto } from './dto/register-employee.dto';
 import { RegisterCompanyDto } from './dto/register-company.dto';
 import { LoginCompanyDto } from './dto/login-company.dto';
 

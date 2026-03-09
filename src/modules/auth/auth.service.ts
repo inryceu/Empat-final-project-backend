@@ -9,7 +9,7 @@ import { EmployeesService } from '../employees/employee.service';
 import { CompaniesService } from '../companies/companies.service';
 import * as bcrypt from 'bcrypt';
 import { OAuth2Client } from 'google-auth-library';
-import { RegisterEmployeeDto } from './dto/register-employee-in-company.dto';
+import { RegisterEmployeeDto } from './dto/register-employee.dto';
 import { RegisterCompanyDto } from './dto/register-company.dto';
 import { LoginDto } from './dto/auth-employee.dto';
 import { LoginCompanyDto } from './dto/login-company.dto';

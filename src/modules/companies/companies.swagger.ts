@@ -14,6 +14,7 @@ const companyExample = {
   size: '51-200',
   contactName: 'John Doe',
   email: 'company@techcorp.com',
+  departments: ['Engineering', 'Sales'], // Додано поле departments
   createdAt: '2026-03-05T10:00:00.000Z',
   updatedAt: '2026-03-05T10:00:00.000Z',
 };
@@ -96,6 +97,49 @@ export function ApiInviteEmployee() {
             'http://localhost:8080/register-employee?token=74f817d8b0c446aa738fbcedc601c292199888ea101c202da6558ec9e890e805',
         },
       },
+    }),
+  );
+}
+
+// --- Нові декоратори для відділів ---
+
+export function ApiGetDepartments() {
+  return applyDecorators(
+    ApiBearerAuth(),
+    ApiOperation({ summary: 'Отримати список відділів поточної компанії' }),
+    ApiResponse({
+      status: 200,
+      schema: {
+        example: ['Engineering', 'Sales', 'HR'],
+      },
+    }),
+  );
+}
+
+export function ApiAddDepartment() {
+  return applyDecorators(
+    ApiBearerAuth(),
+    ApiOperation({ summary: 'Додати новий відділ для компанії' }),
+    ApiBody({
+      description: 'Дані для створення нового відділу',
+      schema: {
+        example: {
+          name: 'Marketing',
+        },
+      },
+    }),
+    ApiResponse({
+      status: 201,
+      schema: {
+        example: {
+          message: 'Відділ успішно додано',
+          departments: ['Engineering', 'Sales', 'Marketing'],
+        },
+      },
+    }),
+    ApiResponse({
+      status: 409,
+      description: 'Відділ з такою назвою вже існує у компанії',
     }),
   );
 }
