@@ -1,4 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  Inject,
+  forwardRef,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { ResourcesService } from '../../resources/resources.service';
@@ -21,12 +26,17 @@ import {
   generateGenericWelcome,
 } from '../utils/chunks.utils';
 
+import { join } from 'path';
+
 @Injectable()
 export class AiService {
   constructor(
     @InjectModel(ResourceChunk.name) private chunkModel: Model<ResourceChunk>,
     @InjectModel(Resource.name) private resourceModel: Model<Resource>,
+
+    @Inject(forwardRef(() => ResourcesService))
     private resourcesService: ResourcesService,
+
     private cacheService: CacheService,
     private geminiService: GeminiService,
     private documentService: DocumentService,
@@ -36,30 +46,40 @@ export class AiService {
   async getStatus() {
     return this.geminiService.getStatus()
       ? { status: 'OK', message: 'Gemini ready' }
-      : { tatus: 'ERROR', message: 'Gemini isn`t ready' };
+      : { status: 'ERROR', message: 'Gemini isn`t ready' };
   }
 
   async processFile(resourceId: string): Promise<void> {
-    const resource = await this.resourcesService.findOne(resourceId);
+    const resource = await this.resourcesService.getRawFile(resourceId);
 
     if (
       !resource ||
       resource.type !== 'file' ||
-      !resource.fileData ||
+      !resource.filePath ||
       !resource.fileName
     ) {
-      throw new Error(
+      throw new BadRequestException(
         'Invalid resource type or missing data/filename for file processing',
       );
     }
 
+    const fullPath = join(process.cwd(), resource.filePath);
+
     const content = await this.documentService.extractTextFromFile(
-      resource.fileData,
+      fullPath,
       resource.fileName,
     );
+
+    if (!content || content.trim().length === 0) {
+      throw new BadRequestException(
+        'Не вдалося розпізнати текст у цьому файлі',
+      );
+    }
+
     await this.processAndSaveChunks(
       resourceId,
       resource.companyId.toString(),
+      resource.employeeId?.toString() || null,
       content,
     );
   }
@@ -98,6 +118,7 @@ export class AiService {
       await this.processAndSaveChunks(
         resourceId,
         resource.companyId.toString(),
+        resource.employeeId?.toString() || null,
         cleanedDocument,
       );
 
@@ -127,6 +148,7 @@ export class AiService {
   private async processAndSaveChunks(
     resourceId: string,
     companyId: string,
+    employeeId: string | null,
     content: string,
   ): Promise<void> {
     const chunks = await this.documentService.splitIntoChunks(
@@ -139,6 +161,7 @@ export class AiService {
     const documents = chunks.map((chunk, index) => ({
       resourceId: new Types.ObjectId(resourceId),
       companyId: new Types.ObjectId(companyId),
+      employeeId: employeeId ? new Types.ObjectId(employeeId) : null,
       chunkIndex: index,
       chunkText: chunk,
       embedding: embeddings[index],
@@ -153,6 +176,7 @@ export class AiService {
   async generateResponse(
     query: string,
     companyId: string,
+    employeeId: string,
   ): Promise<{ content: string; sources: any[] }> {
     this.cacheService.trackQuery(query, companyId).catch(console.error);
     const cachedResponse = await this.cacheService.getCachedResponse(
@@ -168,6 +192,7 @@ export class AiService {
     const relevantChunks = await this.aggregateChunks(
       queryEmbeddings,
       companyId,
+      employeeId,
       15,
     );
 
@@ -178,7 +203,7 @@ export class AiService {
     const { context, resourceTitles, sourcesMap } =
       await buildContextFromChunks(relevantChunks, this.resourceModel);
 
-    const userPrompt = `I have gathered information from ${sourcesMap.size} company resource(s):\n${resourceTitles}\n\nHere is the relevant content:\n\n${context}\n\nUser's question: "${query}"\n\nPlease analyze ALL the provided content and give a comprehensive, helpful answer. Focus on main themes, synthesize information, ignore UI elements, and be conversational.`;
+    const userPrompt = `I have gathered information from ${sourcesMap.size} relevant resource(s):\n${resourceTitles}\n\nHere is the retrieved content:\n\n${context}\n\nUser's question: "${query}"\n\nPlease analyze ALL the provided content and give a comprehensive, helpful answer. Focus on main themes, synthesize information, ignore UI elements, and be conversational.`;
 
     const content = await this.geminiService.generateContent(
       userPrompt,
@@ -194,6 +219,7 @@ export class AiService {
 
   async generateWelcomeMessage(data: {
     companyId: string;
+    employeeId: string;
     employeeName?: string;
     department?: string;
     tags?: any;
@@ -207,6 +233,7 @@ export class AiService {
     const relevantChunks = await this.aggregateChunks(
       queryEmbeddings,
       data.companyId,
+      data.employeeId,
       15,
     );
 
@@ -234,6 +261,7 @@ export class AiService {
   private async aggregateChunks(
     embeddings: number[][],
     companyId: string,
+    employeeId: string,
     limit: number,
   ) {
     const allChunks = new Map<string, any>();
@@ -242,6 +270,7 @@ export class AiService {
         this.chunkModel,
         emb,
         companyId,
+        employeeId,
         10,
       );
       chunks.forEach((chunk) => {

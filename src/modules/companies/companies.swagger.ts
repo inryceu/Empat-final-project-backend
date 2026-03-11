@@ -14,7 +14,7 @@ const companyExample = {
   size: '51-200',
   contactName: 'John Doe',
   email: 'company@techcorp.com',
-  departments: ['Engineering', 'Sales'], // Додано поле departments
+  departments: ['Engineering', 'Sales'],
   createdAt: '2026-03-05T10:00:00.000Z',
   updatedAt: '2026-03-05T10:00:00.000Z',
 };
@@ -100,8 +100,6 @@ export function ApiInviteEmployee() {
     }),
   );
 }
-
-// --- Нові декоратори для відділів ---
 
 export function ApiGetDepartments() {
   return applyDecorators(

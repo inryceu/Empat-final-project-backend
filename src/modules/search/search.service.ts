@@ -36,11 +36,15 @@ export class SearchService implements OnModuleInit {
           name: collectionName,
           fields: [
             { name: 'title', type: 'string' },
-            { name: 'type', type: 'string', facet: true }, // facet: true дозволяє фільтрувати за цим полем
+            { name: 'type', type: 'string', facet: true },
             { name: 'companyId', type: 'string', facet: true },
             { name: 'tags', type: 'string[]', facet: true, optional: true },
-            // Векторне поле (наприклад, для OpenAI ембеддингів розмірністю 1536)
-            { name: 'embedding', type: 'float[]', num_dim: 1536, optional: true }
+            {
+              name: 'embedding',
+              type: 'float[]',
+              num_dim: 768,
+              optional: true,
+            },
           ],
         });
       }
@@ -48,17 +52,18 @@ export class SearchService implements OnModuleInit {
   }
 
   async upsertResource(document: any) {
-    // ⚠️ ВАЖЛИВО: Видаляємо fileData (Buffer) перед відправкою, 
-    // щоб не забити оперативну пам'ять Typesense бінарними даними файлу.
     const { fileData, __v, _id, ...rest } = document;
-    
+
     const typeSenseDoc = {
       ...rest,
-      id: _id.toString(), // Typesense вимагає поле 'id' типу string
+      id: _id.toString(),
     };
 
     try {
-      await this.client.collections('resources').documents().upsert(typeSenseDoc);
+      await this.client
+        .collections('resources')
+        .documents()
+        .upsert(typeSenseDoc);
     } catch (error) {
       this.logger.error('Помилка синхронізації з Typesense', error);
     }

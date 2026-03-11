@@ -10,6 +10,17 @@ services:
     networks:
       - app-network
 
+  typesense:
+    image: typesense/typesense:27.0
+    container_name: typesense
+    ports:
+      - "8108:8108"
+    volumes:
+      - ./typesense-data:/data
+    command: '--data-dir /data --api-key=${TYPESENSE_API_KEY} --enable-cors=true'
+    networks:
+      - app-network
+
   api:
     build:
       context: .
@@ -23,13 +34,19 @@ services:
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
       - GOOGLE_CALLBACK_URL=${GOOGLE_CALLBACK_URL}
-    deploy:
-      replicas: 1
+
+      - TYPESENSE_HOST=${TYPESENSE_HOST}
+      - TYPESENSE_PORT=${TYPESENSE_PORT}
+      - TYPESENSE_PROTOCOL=${TYPESENSE_PROTOCOL}
+      - TYPESENSE_API_KEY=${TYPESENSE_API_KEY}
     networks:
       - app-network
     depends_on:
       - redis
       - db
+      - typesense
+    volumes:
+      - uploads_data:/usr/src/app/uploads
 
   redis:
     image: redis:7-alpine
@@ -55,3 +72,4 @@ networks:
 volumes:
   mongo_data:
   redis_data:
+  uploads_data:

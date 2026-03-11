@@ -39,6 +39,7 @@
     "dotenv": "^16.4.5",
     "google-auth-library": "^10.6.1",
     "ioredis": "^5.10.0",
+    "mammoth": "^1.11.0",
     "mongodb": "^7.1.0",
     "mongoose": "^9.2.3",
     "openai": "^4.62.1",
@@ -48,6 +49,7 @@
     "puppeteer": "^24.37.5",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
+    "typesense": "^3.0.2",
     "zod": "^3.23.8"
   },
   "devDependencies": {
@@ -58,6 +60,7 @@
     "@nestjs/testing": "^11.0.1",
     "@types/express": "^5.0.0",
     "@types/jest": "^30.0.0",
+    "@types/multer": "^2.1.0",
     "@types/node": "^22.19.13",
     "@types/supertest": "^6.0.2",
     "eslint": "^9.18.0",
