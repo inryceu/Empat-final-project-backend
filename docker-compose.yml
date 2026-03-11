@@ -45,6 +45,8 @@ services:
       - redis
       - db
       - typesense
+    volumes:
+      - uploads_data:/usr/src/app/uploads
 
   redis:
     image: redis:7-alpine
@@ -70,3 +72,4 @@ networks:
 volumes:
   mongo_data:
   redis_data:
+  uploads_data:

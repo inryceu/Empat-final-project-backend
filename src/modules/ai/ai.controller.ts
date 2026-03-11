@@ -41,13 +41,15 @@ export class AiController {
   @ApiChat()
   async chat(@Body() body: ChatRequestDto) {
     if (!body.query || !body.companyId || !body.employeeId) {
-      throw new BadRequestException('Query, companyId and employeeId are required');
+      throw new BadRequestException(
+        'Query, companyId and employeeId are required',
+      );
     }
-    
+
     return this.aiService.generateResponse(
-      body.query, 
-      body.companyId, 
-      body.employeeId
+      body.query,
+      body.companyId,
+      body.employeeId,
     );
   }
 
@@ -58,7 +60,7 @@ export class AiController {
     if (!body.companyId || !body.employeeId) {
       throw new BadRequestException('companyId and employeeId are required');
     }
-    
+
     return this.aiService.generateWelcomeMessage(body);
   }
 

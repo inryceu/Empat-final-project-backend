@@ -1,4 +1,9 @@
-import { Injectable, BadRequestException, Inject, forwardRef } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  Inject,
+  forwardRef,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { ResourcesService } from '../../resources/resources.service';
@@ -21,13 +26,16 @@ import {
   generateGenericWelcome,
 } from '../utils/chunks.utils';
 
+import * as fs from 'fs/promises';
+import { join } from 'path';
+
 @Injectable()
 export class AiService {
   constructor(
     @InjectModel(ResourceChunk.name) private chunkModel: Model<ResourceChunk>,
     @InjectModel(Resource.name) private resourceModel: Model<Resource>,
 
-    @Inject(forwardRef(() => ResourcesService)) 
+    @Inject(forwardRef(() => ResourcesService))
     private resourcesService: ResourcesService,
 
     private cacheService: CacheService,
@@ -39,7 +47,7 @@ export class AiService {
   async getStatus() {
     return this.geminiService.getStatus()
       ? { status: 'OK', message: 'Gemini ready' }
-      : { status: 'ERROR', message: 'Gemini isn`t ready' }; 
+      : { status: 'ERROR', message: 'Gemini isn`t ready' };
   }
 
   async processFile(resourceId: string): Promise<void> {
@@ -48,7 +56,7 @@ export class AiService {
     if (
       !resource ||
       resource.type !== 'file' ||
-      !resource.fileData ||
+      !resource.filePath ||
       !resource.fileName
     ) {
       throw new BadRequestException(
@@ -56,10 +64,16 @@ export class AiService {
       );
     }
 
+    const fullPath = join(process.cwd(), resource.filePath);
+
     const content = await this.documentService.extractTextFromFile(
-      resource.fileData,
-      resource.fileName,
+      fullPath, 
+      resource.fileName
     );
+
+    if (!content || content.trim().length === 0) {
+      throw new BadRequestException('Не вдалося розпізнати текст у цьому файлі');
+    }
 
     await this.processAndSaveChunks(
       resourceId,

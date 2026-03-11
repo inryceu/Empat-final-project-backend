@@ -20,7 +20,7 @@ export class ResourcesService {
   ) {}
 
   private serializeResource(res: ResourceDocument) {
-    const { fileData, __v, ...rest } = res.toObject();
+    const { __v, ...rest } = res.toObject();
     return {
       ...rest,
       id: res._id.toString(),
@@ -66,7 +66,7 @@ export class ResourcesService {
       fileName: file.originalname,
       mimeType: file.mimetype,
       fileSize: file.size,
-      fileData: file.buffer,
+      filePath: file.path,
       companyId,
       employeeId,
       tags: [],

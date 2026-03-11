@@ -18,6 +18,12 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags } from '@nestjs/swagger';
 import type { Response } from 'express';
 
+import { createReadStream } from 'fs';
+import { join } from 'path';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
+import { v4 as uuidv4 } from 'uuid';
+
 import { ResourcesService } from './resources.service';
 import {
   AddUrlResourceDto,
@@ -71,7 +77,17 @@ export class ResourcesController {
 
   @Post('upload')
   @ApiUploadResource()
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: './uploads',
+        filename: (req, file, cb) => {
+          const uniqueSuffix = uuidv4();
+          cb(null, `${uniqueSuffix}${extname(file.originalname)}`);
+        },
+      }),
+    }),
+  )
   async uploadFile(
     @Req() req,
     @UploadedFile() file: Express.Multer.File,
@@ -79,7 +95,6 @@ export class ResourcesController {
   ) {
     const userId = req.user._id?.toString() || req.user.id;
     const isCompany = req.user.userType === 'company';
-
     const companyId = isCompany ? userId : req.user.companyId?.toString();
     const employeeId = isCompany ? null : userId;
 
@@ -101,10 +116,8 @@ export class ResourcesController {
   ) {
     const resource = await this.resourcesService.getRawFile(id);
 
-    if (!resource || resource.type !== 'file' || !resource.fileData) {
-      throw new NotFoundException(
-        'Файл не знайдено або він не містить бінарних даних',
-      );
+    if (!resource || resource.type !== 'file' || !resource.filePath) {
+      throw new NotFoundException('Файл не знайдено на сервері');
     }
 
     res.set({
@@ -112,6 +125,8 @@ export class ResourcesController {
       'Content-Disposition': `attachment; filename="${encodeURIComponent(resource.fileName || 'downloaded_file')}"`,
     });
 
-    return new StreamableFile(resource.fileData);
+    // Читаємо файл з диска
+    const fileStream = createReadStream(join(process.cwd(), resource.filePath));
+    return new StreamableFile(fileStream);
   }
 }

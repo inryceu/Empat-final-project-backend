@@ -37,10 +37,8 @@ export class Resource {
   @Prop()
   fileSize?: number;
 
-  // ⚠️ Увага: MongoDB має ліміт 16MB на документ.
-  // Зберігати буфер у базі ок для дрібних файлів, але для великих краще S3 або GridFS.
-  @Prop({ type: Buffer })
-  fileData?: Buffer;
+  @Prop({ required: false })
+  filePath?: string;
 
   @Prop({ type: [String], default: [] })
   tags: string[];
@@ -48,6 +46,5 @@ export class Resource {
   @Prop({ type: [Number], default: [] })
   embedding?: number[];
 }
-
 
 export const ResourceSchema = SchemaFactory.createForClass(Resource);

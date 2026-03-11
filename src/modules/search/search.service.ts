@@ -39,7 +39,12 @@ export class SearchService implements OnModuleInit {
             { name: 'type', type: 'string', facet: true },
             { name: 'companyId', type: 'string', facet: true },
             { name: 'tags', type: 'string[]', facet: true, optional: true },
-            { name: 'embedding', type: 'float[]', num_dim: 768, optional: true }
+            {
+              name: 'embedding',
+              type: 'float[]',
+              num_dim: 768,
+              optional: true,
+            },
           ],
         });
       }
@@ -48,14 +53,17 @@ export class SearchService implements OnModuleInit {
 
   async upsertResource(document: any) {
     const { fileData, __v, _id, ...rest } = document;
-    
+
     const typeSenseDoc = {
       ...rest,
       id: _id.toString(),
     };
 
     try {
-      await this.client.collections('resources').documents().upsert(typeSenseDoc);
+      await this.client
+        .collections('resources')
+        .documents()
+        .upsert(typeSenseDoc);
     } catch (error) {
       this.logger.error('Помилка синхронізації з Typesense', error);
     }

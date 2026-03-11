@@ -17,5 +17,5 @@ export class ChatRequestDto {
     example: '65f1a2b3c4d5e6f7a8b9c0d2',
     description: 'ID співробітника, який робить запит',
   })
-  employeeId: string; 
+  employeeId: string;
 }

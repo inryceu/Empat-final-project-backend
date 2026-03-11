@@ -63,7 +63,7 @@ export async function findRelevantChunks(
           queryVector: queryEmbedding,
           numCandidates: 200,
           limit,
-          filter: { 
+          filter: {
             companyId: new Types.ObjectId(companyId),
             employeeId: { $in: allowedEmployeeIds },
           },

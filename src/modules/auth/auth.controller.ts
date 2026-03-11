@@ -41,14 +41,14 @@ export class AuthController {
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
   @ApiGoogleAuthCallback()
-async googleAuthRedirect(@Req() req, @Res() res: Response) {
+  async googleAuthRedirect(@Req() req, @Res() res: Response) {
     const userType = req.user.userType || 'employee';
     const { accessToken } = await this.authService.login(req.user, userType);
 
     const frontendUrl = process.env.FRONTEND_URL;
 
     const redirectUrl = `${frontendUrl}/auth/callback?token=${accessToken}`;
-    
+
     return res.redirect(redirectUrl);
   }
 

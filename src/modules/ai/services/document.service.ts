@@ -1,32 +1,26 @@
 import { Injectable } from '@nestjs/common';
 import { RecursiveCharacterTextSplitter } from '@langchain/textsplitters';
 import { PDFLoader } from '@langchain/community/document_loaders/fs/pdf';
-import * as fs from 'fs';
+import * as fs from 'fs/promises';
 import * as path from 'path';
-import * as os from 'os';
 
 @Injectable()
 export class DocumentService {
   async extractTextFromFile(
-    fileData: Buffer,
+    filePath: string,
     fileName: string,
   ): Promise<string> {
     const fileExtension = path.extname(fileName).toLowerCase();
 
     if (fileExtension === '.pdf') {
-      const tempFilePath = path.join(os.tmpdir(), `temp-${Date.now()}.pdf`);
-      try {
-        fs.writeFileSync(tempFilePath, fileData);
-        const loader = new PDFLoader(tempFilePath);
-        const docs = await loader.load();
-        return docs.map((doc) => doc.pageContent).join('\n');
-      } finally {
-        if (fs.existsSync(tempFilePath)) fs.unlinkSync(tempFilePath);
-      }
+      const loader = new PDFLoader(filePath);
+      const docs = await loader.load();
+      return docs.map((doc) => doc.pageContent).join('\n');
     }
 
     if (fileExtension === '.md' || fileExtension === '.txt') {
-      return fileData.toString('utf-8');
+      const content = await fs.readFile(filePath, {encoding: 'utf-8'});
+      return content;
     }
 
     throw new Error(`Unsupported file type: ${fileExtension}`);
