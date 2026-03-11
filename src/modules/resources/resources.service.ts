@@ -1,5 +1,7 @@
 import {
   Injectable,
+  Inject,
+  forwardRef,
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
@@ -11,12 +13,16 @@ import {
   UploadResourceDto,
   AddUrlResourceDto,
 } from './dto/upload-resource.dto';
+import { AiService } from '../ai/services/ai.service';
 
 @Injectable()
 export class ResourcesService {
   constructor(
     @InjectModel(Resource.name) private resourceModel: Model<ResourceDocument>,
     private companiesService: CompaniesService,
+
+    @Inject(forwardRef(() => AiService))
+    private aiService: AiService,
   ) {}
 
   private serializeResource(res: ResourceDocument) {
@@ -51,6 +57,10 @@ export class ResourcesService {
       tags: [],
     });
 
+    this.aiService.processUrl(newResource._id.toString()).catch((err) => {
+      console.error(`AI Processing failed for URL ${newResource._id}:`, err);
+    });
+
     return this.serializeResource(newResource);
   }
 
@@ -70,6 +80,10 @@ export class ResourcesService {
       companyId,
       employeeId,
       tags: [],
+    });
+
+    this.aiService.processFile(newResource._id.toString()).catch((err) => {
+      console.error(`AI Processing failed for File ${newResource._id}:`, err);
     });
 
     return this.serializeResource(newResource);
@@ -115,5 +129,11 @@ export class ResourcesService {
 
   async getRawFile(id: string) {
     return this.resourceModel.findById(id).exec();
+  }
+
+  async updateResourceStatus(id: string, statusData: Partial<Resource>) {
+    return this.resourceModel
+      .findByIdAndUpdate(id, { $set: statusData }, { new: true })
+      .exec();
   }
 }

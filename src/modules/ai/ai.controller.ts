@@ -7,7 +7,10 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+<<<<<<< Updated upstream
   BadRequestException,
+=======
+>>>>>>> Stashed changes
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
@@ -15,13 +18,7 @@ import { AiService } from './services/ai.service';
 import { ChatRequestDto } from './dto/chat-request.dto';
 import { WelcomeRequestDto } from './dto/welcome-request.dto';
 
-import {
-  ApiGetAiStatus,
-  ApiChat,
-  ApiGenerateWelcome,
-  ApiProcessFile,
-  ApiProcessUrl,
-} from './ai.swagger';
+import { ApiGetAiStatus, ApiChat, ApiGenerateWelcome } from './ai.swagger';
 
 @ApiTags('AI - RAG System')
 @ApiBearerAuth()
@@ -38,7 +35,13 @@ export class AiController {
 
   @Post('chat')
   @HttpCode(HttpStatus.OK)
+<<<<<<< Updated upstream
   @ApiChat()
+=======
+  @ApiOperation({
+    summary: 'Відправити запит до RAG системи (спілкування з документами)',
+  })
+>>>>>>> Stashed changes
   async chat(@Body() body: ChatRequestDto) {
     if (!body.query || !body.companyId || !body.employeeId) {
       throw new BadRequestException(
@@ -55,7 +58,13 @@ export class AiController {
 
   @Post('welcome')
   @HttpCode(HttpStatus.OK)
+<<<<<<< Updated upstream
   @ApiGenerateWelcome()
+=======
+  @ApiOperation({
+    summary: 'Згенерувати персоналізоване привітання для новачка',
+  })
+>>>>>>> Stashed changes
   async generateWelcome(@Body() body: WelcomeRequestDto) {
     if (!body.companyId || !body.employeeId) {
       throw new BadRequestException('companyId and employeeId are required');
@@ -63,10 +72,12 @@ export class AiController {
 
     return this.aiService.generateWelcomeMessage(body);
   }
+<<<<<<< Updated upstream
+=======
 
   @Post('process/file/:resourceId')
   @HttpCode(HttpStatus.OK)
-  @ApiProcessFile()
+  @ApiOperation({ summary: 'Нарізати та векторизувати завантажений файл' })
   async processFile(@Param('resourceId') resourceId: string) {
     await this.aiService.processFile(resourceId);
     return {
@@ -77,7 +88,7 @@ export class AiController {
 
   @Post('process/url/:resourceId')
   @HttpCode(HttpStatus.OK)
-  @ApiProcessUrl()
+  @ApiOperation({ summary: 'Скрейпінг та векторизація веб-сторінки' })
   async processUrl(@Param('resourceId') resourceId: string) {
     await this.aiService.processUrl(resourceId);
     return {
@@ -85,4 +96,5 @@ export class AiController {
       message: `URL resource ${resourceId} processed`,
     };
   }
+>>>>>>> Stashed changes
 }

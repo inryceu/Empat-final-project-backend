@@ -26,7 +26,6 @@ import {
   generateGenericWelcome,
 } from '../utils/chunks.utils';
 
-import * as fs from 'fs/promises';
 import { join } from 'path';
 
 @Injectable()
@@ -67,12 +66,14 @@ export class AiService {
     const fullPath = join(process.cwd(), resource.filePath);
 
     const content = await this.documentService.extractTextFromFile(
-      fullPath, 
-      resource.fileName
+      fullPath,
+      resource.fileName,
     );
 
     if (!content || content.trim().length === 0) {
-      throw new BadRequestException('Не вдалося розпізнати текст у цьому файлі');
+      throw new BadRequestException(
+        'Не вдалося розпізнати текст у цьому файлі',
+      );
     }
 
     await this.processAndSaveChunks(

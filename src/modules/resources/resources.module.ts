@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ResourcesController } from './resources.controller';
 import { ResourcesService } from './resources.service';
@@ -6,11 +6,13 @@ import { Resource, ResourceSchema } from './schemas/resource.schema';
 import { SearchModule } from '../search/resources.module';
 import { CompaniesModule } from '../companies/companies.module';
 import { SearchService } from '../search/search.service';
+import { AiModule } from '../ai/ai.module';
 
 @Module({
   imports: [
     SearchModule,
     CompaniesModule,
+    forwardRef(() => AiModule),
     MongooseModule.forFeatureAsync([
       {
         name: Resource.name,
