@@ -18,7 +18,7 @@ import { CompaniesService } from './companies.service';
 import { RegisterCompanyDto } from '../auth/dto/register-company.dto';
 import { Company } from './company.interface';
 import { CreateInviteDto } from './dto/create-invite.dto';
-import { AddDepartmentDto } from './dto/add-department.dto'
+import { AddDepartmentDto } from './dto/add-department.dto';
 
 import {
   ApiFindAllCompanies,
@@ -27,7 +27,7 @@ import {
   ApiDeleteCompany,
   ApiInviteEmployee,
   ApiAddDepartment,
-  ApiGetDepartments
+  ApiGetDepartments,
 } from './companies.swagger';
 
 @ApiTags('Companies - Компанії')
@@ -36,9 +36,7 @@ import {
 @ApiBearerAuth()
 @UseGuards(AuthGuard('jwt'))
 export class CompaniesController {
-  constructor(
-    private readonly companiesService: CompaniesService,
-  ) {}
+  constructor(private readonly companiesService: CompaniesService) {}
 
   @Get()
   @ApiFindAllCompanies()
@@ -69,17 +67,19 @@ export class CompaniesController {
   }
 
   @Get('me/departments')
-  @ApiGetDepartments() 
+  @ApiGetDepartments()
   async getDepartments(@Req() req): Promise<string[]> {
     if (req.user.userType !== 'company') {
-      throw new ForbiddenException('Тільки компанії мають доступ до своїх відділів');
+      throw new ForbiddenException(
+        'Тільки компанії мають доступ до своїх відділів',
+      );
     }
     const companyId = req.user._id?.toString() || req.user.id;
     return this.companiesService.getDepartments(companyId);
   }
 
   @Post('me/departments')
-  @ApiAddDepartment() 
+  @ApiAddDepartment()
   async addDepartment(
     @Req() req,
     @Body() dto: AddDepartmentDto,
@@ -88,8 +88,11 @@ export class CompaniesController {
       throw new ForbiddenException('Тільки компанії можуть створювати відділи');
     }
     const companyId = req.user._id?.toString() || req.user.id;
-    const updatedDepartments = await this.companiesService.addDepartment(companyId, dto.name);
-    
+    const updatedDepartments = await this.companiesService.addDepartment(
+      companyId,
+      dto.name,
+    );
+
     return {
       message: 'Відділ успішно додано',
       departments: updatedDepartments,

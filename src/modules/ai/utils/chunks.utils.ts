@@ -43,11 +43,17 @@ export async function buildContextFromChunks(
 }
 
 export async function findRelevantChunks(
-  chunkModel: Model<ResourceChunk>,
+  chunkModel: Model<any>,
   queryEmbedding: number[],
   companyId: string,
+  employeeId: string | null,
   limit: number,
 ) {
+  const allowedEmployeeIds: (Types.ObjectId | null)[] = [null];
+  if (employeeId) {
+    allowedEmployeeIds.push(new Types.ObjectId(employeeId));
+  }
+
   return chunkModel
     .aggregate([
       {
@@ -57,7 +63,10 @@ export async function findRelevantChunks(
           queryVector: queryEmbedding,
           numCandidates: 200,
           limit,
-          filter: { companyId: new Types.ObjectId(companyId) },
+          filter: { 
+            companyId: new Types.ObjectId(companyId),
+            employeeId: { $in: allowedEmployeeIds },
+          },
         },
       },
       {
@@ -67,6 +76,7 @@ export async function findRelevantChunks(
           score: { $meta: 'vectorSearchScore' },
           companyId: 1,
           resourceId: 1,
+          employeeId: 1,
         },
       },
     ])

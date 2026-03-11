@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class WelcomeRequestDto {
   @ApiProperty({
@@ -8,14 +8,26 @@ export class WelcomeRequestDto {
   companyId: string;
 
   @ApiProperty({
-    example: 'Олександр',
-    description: 'Ім’я нового співробітника',
+    example: '65f1a2b3c4d5e6f7a8b9c0d2',
+    description: 'ID співробітника',
   })
-  employeeName: string;
+  employeeId: string;
 
-  @ApiProperty({
-    example: 'Frontend Developer',
-    description: 'Посада новачка',
+  @ApiPropertyOptional({
+    example: 'Олександр',
+    description: "Ім'я співробітника для персоналізації привітання",
   })
-  position: string;
+  employeeName?: string;
+
+  @ApiPropertyOptional({
+    example: 'IT',
+    description: 'Відділ, у якому працює співробітник',
+  })
+  department?: string;
+
+  @ApiPropertyOptional({
+    example: ['remote', 'developer'],
+    description: 'Додаткові теги співробітника',
+  })
+  tags?: any;
 }

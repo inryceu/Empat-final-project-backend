@@ -1,16 +1,40 @@
-import { Module, forwardRef } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { ResourcesService } from '../resources/resources.service';
-import { Resource, ResourceSchema } from '../resources/schemas/resource.schema';
-import { AiModule } from '../ai/ai.module';
+import { ResourcesController } from './resources.controller';
+import { ResourcesService } from './resources.service';
+import { Resource, ResourceSchema } from './schemas/resource.schema';
+import { SearchModule } from '../search/resources.module';
+import { CompaniesModule} from '../companies/companies.module';
+import { SearchService } from '../search/search.service';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([
-      { name: Resource.name, schema: ResourceSchema },
+    SearchModule,
+    CompaniesModule,
+    MongooseModule.forFeatureAsync([
+      {
+        name: Resource.name,
+        imports: [SearchModule],
+        inject: [SearchService],
+        useFactory: (searchService: SearchService) => {
+          const schema = ResourceSchema;
+
+          schema.post('save', async function (doc) {
+            await searchService.upsertResource(doc.toObject());
+          });
+
+          schema.post('findOneAndDelete', async function (doc) {
+            if (doc) {
+              await searchService.deleteResource(doc._id.toString());
+            }
+          });
+
+          return schema;
+        },
+      },
     ]),
-    forwardRef(() => AiModule),
   ],
+  controllers: [ResourcesController],
   providers: [ResourcesService],
   exports: [ResourcesService],
 })

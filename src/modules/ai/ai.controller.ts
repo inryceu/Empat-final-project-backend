@@ -40,19 +40,25 @@ export class AiController {
   @HttpCode(HttpStatus.OK)
   @ApiChat()
   async chat(@Body() body: ChatRequestDto) {
-    if (!body.query || !body.companyId) {
-      throw new BadRequestException('Query and companyId are required');
+    if (!body.query || !body.companyId || !body.employeeId) {
+      throw new BadRequestException('Query, companyId and employeeId are required');
     }
-    return this.aiService.generateResponse(body.query, body.companyId);
+    
+    return this.aiService.generateResponse(
+      body.query, 
+      body.companyId, 
+      body.employeeId
+    );
   }
 
   @Post('welcome')
   @HttpCode(HttpStatus.OK)
   @ApiGenerateWelcome()
   async generateWelcome(@Body() body: WelcomeRequestDto) {
-    if (!body.companyId) {
-      throw new BadRequestException('companyId is required');
+    if (!body.companyId || !body.employeeId) {
+      throw new BadRequestException('companyId and employeeId are required');
     }
+    
     return this.aiService.generateWelcomeMessage(body);
   }
 
@@ -65,10 +71,6 @@ export class AiController {
       status: 'success',
       message: `File resource ${resourceId} processed`,
     };
-    return {
-      status: 'success',
-      message: `File resource ${resourceId} processed`,
-    };
   }
 
   @Post('process/url/:resourceId')
@@ -76,10 +78,6 @@ export class AiController {
   @ApiProcessUrl()
   async processUrl(@Param('resourceId') resourceId: string) {
     await this.aiService.processUrl(resourceId);
-    return {
-      status: 'success',
-      message: `URL resource ${resourceId} processed`,
-    };
     return {
       status: 'success',
       message: `URL resource ${resourceId} processed`,

@@ -79,7 +79,10 @@ export class CompaniesService {
     return company.departments || [];
   }
 
-  async addDepartment(companyId: string, departmentName: string): Promise<string[]> {
+  async addDepartment(
+    companyId: string,
+    departmentName: string,
+  ): Promise<string[]> {
     const company = await this.companyModel.findById(companyId).exec();
     if (!company) {
       throw new NotFoundException('Компанію не знайдено');
@@ -87,7 +90,9 @@ export class CompaniesService {
 
     const normalizedName = departmentName.trim();
     if (company.departments.includes(normalizedName)) {
-      throw new ConflictException(`Відділ "${normalizedName}" вже існує у вашій компанії`);
+      throw new ConflictException(
+        `Відділ "${normalizedName}" вже існує у вашій компанії`,
+      );
     }
 
     company.departments.push(normalizedName);
