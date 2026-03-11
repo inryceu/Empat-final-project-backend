@@ -3,11 +3,10 @@ import {
   Post,
   Body,
   Get,
-  Param,
   UseGuards,
   HttpCode,
   HttpStatus,
-  BadRequestException,
+  Req,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
@@ -33,28 +32,27 @@ export class AiController {
   @Post('chat')
   @HttpCode(HttpStatus.OK)
   @ApiChat()
-  async chat(@Body() body: ChatRequestDto) {
-    if (!body.query || !body.companyId || !body.employeeId) {
-      throw new BadRequestException(
-        'Query, companyId and employeeId are required',
-      );
-    }
+  async chat(@Req() req, @Body() body: ChatRequestDto) {
+    const companyId =
+      req.user.userType === 'company' ? req.user.id : req.user.companyId;
+    const employeeId = req.user.userType === 'company' ? null : req.user.id;
 
-    return this.aiService.generateResponse(
-      body.query,
-      body.companyId,
-      body.employeeId,
-    );
+    return this.aiService.generateResponse(body.query, companyId, employeeId);
   }
 
   @Post('welcome')
   @HttpCode(HttpStatus.OK)
   @ApiGenerateWelcome()
-  async generateWelcome(@Body() body: WelcomeRequestDto) {
-    if (!body.companyId || !body.employeeId) {
-      throw new BadRequestException('companyId and employeeId are required');
-    }
+  async generateWelcome(@Req() req, @Body() body: WelcomeRequestDto) {
+    const companyId =
+      req.user.userType === 'company' ? req.user.id : req.user.companyId;
+    const employeeId = req.user.userType === 'company' ? null : req.user.id;
 
-    return this.aiService.generateWelcomeMessage(body);
+    return this.aiService.generateWelcomeMessage({
+      companyId,
+      employeeId,
+      employeeName: body.employeeName,
+      department: body.department,
+    });
   }
 }
