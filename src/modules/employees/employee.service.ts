@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, HydratedDocument } from 'mongoose';
 import { Employee } from './schemas/employee.schema';
-import { UpdateEmployeeDto } from './dto/update-employee.dto';
+import { CompleteRegistrationDto } from '../auth/dto/complete-employee-registration.dto';
 
 export type EmployeesDocument = HydratedDocument<Employee>;
 
@@ -38,7 +38,7 @@ export class EmployeesService {
 
   async update(
     id: string,
-    updateData: UpdateEmployeeDto,
+    updateData: Partial<CompleteRegistrationDto>,
   ): Promise<EmployeesDocument> {
     const updatedEmployee = await this.employeeModel
       .findByIdAndUpdate(id, updateData, { new: true })

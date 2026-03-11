@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { HydratedDocument } from 'mongoose';
-import { EmployeeRole } from 'src/modules/employees/dto/enums';
+import { EmployeeRole } from 'src/modules/auth/dto/register-employee-enums';
 
 export type InviteDocument = HydratedDocument<Invite>;
 

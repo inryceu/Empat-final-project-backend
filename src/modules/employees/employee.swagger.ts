@@ -5,8 +5,9 @@ import {
   ApiParam,
   ApiBody,
   ApiBearerAuth,
+  PartialType,
 } from '@nestjs/swagger';
-import { UpdateEmployeeDto } from './dto/update-employee.dto';
+import { CompleteRegistrationDto } from '../auth/dto/complete-employee-registration.dto';
 
 const employeeExample = {
   id: '65f1a2b3c4d5e6f7a8b9c0d1',
@@ -45,7 +46,7 @@ export function ApiUpdateEmployee() {
     ApiOperation({ summary: 'Оновити дані співробітника' }),
     ApiParam({ name: 'id', example: '65f1a2b3c4d5e6f7a8b9c0d1' }),
     ApiBody({
-      type: UpdateEmployeeDto,
+      type: PartialType(CompleteRegistrationDto),
       description: 'JSON з полями для оновлення',
       schema: {
         example: {
