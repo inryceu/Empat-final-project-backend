@@ -12,13 +12,6 @@ export class LoginDto {
   password: string;
 }
 
-export class RegisterDto extends LoginDto {
-  @ApiProperty({ example: 'Павло Малуєв' })
-  @IsString()
-  @IsNotEmpty({ message: "Ім'я обов'язкове" })
-  fullName: string;
-}
-
 export class GoogleMobileLoginDto {
   @ApiProperty({
     example: 'eyJhbGciOiJSUzI1...',

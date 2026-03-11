@@ -12,7 +12,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import type { Response } from 'express';
 
-import { LoginDto, GoogleMobileLoginDto } from './dto/auth-employee.dto';
+import { LoginDto, GoogleMobileLoginDto } from './dto/login-employee.dto';
 import { RegisterEmployeeDto } from './dto/register-employee.dto';
 import { RegisterCompanyDto } from './dto/register-company.dto';
 import { LoginCompanyDto } from './dto/login-company.dto';
@@ -41,14 +41,15 @@ export class AuthController {
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
   @ApiGoogleAuthCallback()
-  async googleAuthRedirect(@Req() req, @Res() res: Response) {
+async googleAuthRedirect(@Req() req, @Res() res: Response) {
     const userType = req.user.userType || 'employee';
     const { accessToken } = await this.authService.login(req.user, userType);
-    const profile = await this.authService.getProfile(
-      req.user.id,
-      req.user.userType,
-    );
-    return { accessToken, ...profile };
+
+    const frontendUrl = process.env.FRONTEND_URL;
+
+    const redirectUrl = `${frontendUrl}/auth/callback?token=${accessToken}`;
+    
+    return res.redirect(redirectUrl);
   }
 
   @Post('google/mobile')
