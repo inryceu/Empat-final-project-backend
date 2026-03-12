@@ -6,7 +6,7 @@ import {
   Req,
   UseGuards,
   Res,
-  Query
+  Query,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags } from '@nestjs/swagger';
@@ -43,12 +43,12 @@ export class AuthController {
   @UseGuards(AuthGuard('google'))
   @ApiGoogleAuthCallback()
   async googleAuthRedirect(@Req() req, @Res() res: Response) {
-    const userType = req.user.userType || 'employee';
-    const { accessToken } = await this.authService.login(req.user, userType);
+    const email = req.user.emails[0].value;
+    
+    const { accessToken } = await this.authService.handleGoogleLogin(email);
 
     const frontendUrl = process.env.FRONTEND_URL;
-
-    const redirectUrl = `${frontendUrl}/auth/callback?token=${accessToken}`;
+    const redirectUrl = `${frontendUrl}/auth/success?token=${accessToken}`;
 
     return res.redirect(redirectUrl);
   }
@@ -88,10 +88,11 @@ export class AuthController {
   @Get('me')
   @UseGuards(AuthGuard('jwt'))
   @ApiGetProfile()
-   async getProfile(@Req() req, @Query('userType') userType?: string) {
-     const type = (userType === 'company' || userType === 'employee') 
-       ? userType 
-       : (req.user?.userType || 'employee');
-     return this.authService.getProfile(req.user.id, type);
-   }
+  async getProfile(@Req() req, @Query('userType') userType?: string) {
+    const type =
+      userType === 'company' || userType === 'employee'
+        ? userType
+        : req.user?.userType || 'employee';
+    return this.authService.getProfile(req.user.id, type);
+  }
 }

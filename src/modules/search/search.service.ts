@@ -171,12 +171,8 @@ export class SearchService implements OnModuleInit {
 
     try {
       const result = await this.client.multiSearch.perform(
-        {
-          searches: [searchRequest],
-        },
-        {
-          query_by: 'chunkText',
-        },
+        { searches: [searchRequest] },
+        { query_by: 'chunkText' },
       );
 
       const firstResult = result.results[0] as any;
