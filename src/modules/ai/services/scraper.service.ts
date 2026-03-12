@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import puppeteer, { Browser } from 'puppeteer';
+import puppeteer from 'puppeteer-core';
 import * as cheerio from 'cheerio';
 
 @Injectable()
@@ -79,15 +79,15 @@ export class ScraperService {
   }
 
   private async scrapeDynamicPage(url: string): Promise<string> {
-    let browser: Browser | null = null;
+    let browser;
     try {
       browser = await puppeteer.launch({
-        headless: true,
+        executablePath:
+          process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium',
         args: [
           '--no-sandbox',
           '--disable-setuid-sandbox',
           '--disable-dev-shm-usage',
-          '--disable-gpu',
         ],
       });
 

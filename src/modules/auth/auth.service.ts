@@ -121,28 +121,19 @@ export class AuthService {
     }
   }
 
-  async validateGoogleUser(profile: any) {
-    const email = profile.emails[0].value;
-    return this.handleGoogleLogin(email, true);
-  }
-
-  private async handleGoogleLogin(email: string, returnRaw = false) {
+  async handleGoogleLogin(email: string) {
     const company = await this.companiesService.findByEmail(email);
     if (company) {
-      return returnRaw
-        ? { user: company, userType: 'company' }
-        : this.login(company, 'company');
+      return this.login(company, 'company');
     }
 
     const employee = await this.employeesService.findByEmail(email);
     if (employee) {
-      return returnRaw
-        ? { user: employee, userType: 'employee' }
-        : this.login(employee, 'employee');
+      return this.login(employee, 'employee');
     }
 
     throw new UnauthorizedException(
-      'Акаунт з таким email не знайдено. Будь ласка, зареєструйтесь.',
+      `Акаунт з таким email (${email}) не знайдено. Будь ласка, зареєструйтесь.`,
     );
   }
 

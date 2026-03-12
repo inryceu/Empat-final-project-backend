@@ -154,7 +154,7 @@ export class AiService {
   private async aggregateChunks(
     embeddings: number[][],
     companyId: string,
-    employeeId: string,
+    employeeId: string | null,
     limit: number,
   ) {
     const allChunks = new Map<string, any>();
@@ -176,7 +176,7 @@ export class AiService {
     }
 
     return Array.from(allChunks.values())
-      .sort((a, b) => b.score - a.score)
+      .sort((a, b) => a.score - b.score)
       .slice(0, limit);
   }
 }

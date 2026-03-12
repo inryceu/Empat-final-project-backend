@@ -1,5 +1,4 @@
 import { Model, Types } from 'mongoose';
-import { ResourceChunk } from '../schemas/resource-chunk.schema';
 import { Resource } from '../../resources/schemas/resource.schema';
 
 export async function buildContextFromChunks(
@@ -42,47 +41,6 @@ export async function buildContextFromChunks(
   return { context, resourceTitles, sourcesMap };
 }
 
-export async function findRelevantChunks(
-  chunkModel: Model<any>,
-  queryEmbedding: number[],
-  companyId: string,
-  employeeId: string | null,
-  limit: number,
-) {
-  const allowedEmployeeIds: (Types.ObjectId | null)[] = [null];
-  if (employeeId) {
-    allowedEmployeeIds.push(new Types.ObjectId(employeeId));
-  }
-
-  return chunkModel
-    .aggregate([
-      {
-        $vectorSearch: {
-          index: 'vector_index_onboardai',
-          path: 'embedding',
-          queryVector: queryEmbedding,
-          numCandidates: 200,
-          limit,
-          filter: {
-            companyId: new Types.ObjectId(companyId),
-            employeeId: { $in: allowedEmployeeIds },
-          },
-        },
-      },
-      {
-        $project: {
-          _id: 0,
-          chunkText: 1,
-          score: { $meta: 'vectorSearchScore' },
-          companyId: 1,
-          resourceId: 1,
-          employeeId: 1,
-        },
-      },
-    ])
-    .exec();
-}
-
 export function expandQuery(query: string): string[] {
   const queries = [query];
   const l = query.toLowerCase();
@@ -94,13 +52,12 @@ export function expandQuery(query: string): string[] {
 }
 
 export async function handleEmptyResults(
-  chunkModel: Model<ResourceChunk>,
+  chunkModel: Model<any>,
   companyId: string,
 ) {
-  const hasChunks =
-    (await chunkModel.countDocuments({
-      companyId: new Types.ObjectId(companyId),
-    })) > 0;
+  const hasChunks = await chunkModel.exists({
+    companyId: new Types.ObjectId(companyId),
+  });
 
   if (!hasChunks) {
     return {
