@@ -139,7 +139,6 @@ export class SearchService implements OnModuleInit {
     });
 
     try {
-      // Використовуємо метод import для масового швидкого збереження
       await this.client
         .collections('resource_chunks')
         .documents()
@@ -163,7 +162,6 @@ export class SearchService implements OnModuleInit {
       filterBy += ` && (employeeId:=${employeeId} || employeeId:is_missing)`;
     }
 
-    // Параметри для одного пошукового запиту
     const searchRequest = {
       collection: 'resource_chunks',
       q: '*',
@@ -172,18 +170,15 @@ export class SearchService implements OnModuleInit {
     };
 
     try {
-      // 🚀 ВИКОРИСТОВУЄМО MULTISEARCH (POST ЗАПИТ), ЩОБ ОБІЙТИ ЛІМІТ ДОВЖИНИ URL
       const result = await this.client.multiSearch.perform(
         {
           searches: [searchRequest],
         },
         {
-          query_by: 'chunkText', // Це поле вимагається Typesense навіть для векторного пошуку
+          query_by: 'chunkText',
         },
       );
 
-      // multiSearch повертає масив результатів (по одному на кожен searchRequest)
-      // Оскільки у нас тільки один запит, беремо result.results[0]
       const firstResult = result.results[0] as any;
 
       return (firstResult.hits || []).map((hit: any) => ({

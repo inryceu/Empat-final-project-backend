@@ -44,8 +44,6 @@ export class ResourcesService {
     };
   }
 
-  // --- 1. CRUD ОПЕРАЦІЇ ---
-
   async addUrlResource(
     dto: AddUrlResourceDto,
     companyId: string,
@@ -57,7 +55,6 @@ export class ResourcesService {
       throw new BadRequestException('Невалідний формат URL');
     }
 
-    // Генеруємо вектор заголовка для Typesense (пошук по назвах)
     const titleEmbedding = await this.aiService.generateSingleEmbedding(
       dto.title,
     );
@@ -71,7 +68,6 @@ export class ResourcesService {
       embedding: titleEmbedding,
     });
 
-    // Фоновий запуск
     this.processUrl(newResource._id.toString()).catch((err) =>
       console.error(`AI failed for URL ${newResource._id}:`, err),
     );
@@ -137,8 +133,6 @@ export class ResourcesService {
   async getRawFile(id: string) {
     return this.resourceModel.findById(id).exec();
   }
-
-  // --- 2. ОРКЕСТРАЦІЯ ОБРОБКИ (AI ТА ПАРСИНГ) ---
 
   async updateResourceStatus(id: string, statusData: Partial<Resource>) {
     return this.resourceModel
