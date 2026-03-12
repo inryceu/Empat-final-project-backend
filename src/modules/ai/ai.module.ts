@@ -7,7 +7,7 @@ import { DocumentService } from './services/document.service';
 import { ScraperService } from './services/scraper.service';
 import { ResourcesModule } from '../resources/resources.module';
 import { CacheModule } from '../cache/redis.module';
-import { SearchModule } from '../search/resources.module';
+import { SearchModule } from '../search/search.module';
 import {
   ResourceChunk,
   ResourceChunkSchema,

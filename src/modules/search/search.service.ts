@@ -11,12 +11,12 @@ export class SearchService implements OnModuleInit {
       nodes: [
         {
           host: process.env.TYPESENSE_HOST || 'localhost',
-          port: parseInt(process.env.TYPESENSE_PORT || '8108'),
+          port: parseInt(process.env.TYPESENSE_PORT || '8080'),
           protocol: process.env.TYPESENSE_PROTOCOL || 'http',
         },
       ],
       apiKey: process.env.TYPESENSE_API_KEY || 'local-api-key',
-      connectionTimeoutSeconds: 2,
+      connectionTimeoutSeconds: 3,
     });
   }
 
@@ -55,7 +55,7 @@ export class SearchService implements OnModuleInit {
       },
     ];
 
-    const maxRetries = 5;
+    const maxRetries = 7;
     let isConnected = false;
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
@@ -171,12 +171,8 @@ export class SearchService implements OnModuleInit {
 
     try {
       const result = await this.client.multiSearch.perform(
-        {
-          searches: [searchRequest],
-        },
-        {
-          query_by: 'chunkText',
-        },
+        { searches: [searchRequest] },
+        { query_by: 'chunkText' },
       );
 
       const firstResult = result.results[0] as any;
