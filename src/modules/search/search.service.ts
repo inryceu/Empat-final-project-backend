@@ -11,8 +11,8 @@ export class SearchService implements OnModuleInit {
       nodes: [
         {
           host: process.env.TYPESENSE_HOST || 'localhost',
-          port: parseInt(process.env.TYPESENSE_PORT || '8108'),
-          protocol: process.env.TYPESENSE_PROTOCOL || 'https',
+          port: parseInt(process.env.TYPESENSE_PORT || '8080'),
+          protocol: process.env.TYPESENSE_PROTOCOL || 'http',
         },
       ],
       apiKey: process.env.TYPESENSE_API_KEY || 'local-api-key',
