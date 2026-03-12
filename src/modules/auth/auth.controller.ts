@@ -44,7 +44,7 @@ export class AuthController {
   @ApiGoogleAuthCallback()
   async googleAuthRedirect(@Req() req, @Res() res: Response) {
     const email = req.user.emails[0].value;
-    
+
     const { accessToken } = await this.authService.handleGoogleLogin(email);
 
     const frontendUrl = process.env.FRONTEND_URL;

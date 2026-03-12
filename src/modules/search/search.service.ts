@@ -12,11 +12,11 @@ export class SearchService implements OnModuleInit {
         {
           host: process.env.TYPESENSE_HOST || 'localhost',
           port: parseInt(process.env.TYPESENSE_PORT || '8108'),
-          protocol: process.env.TYPESENSE_PROTOCOL || 'http',
+          protocol: process.env.TYPESENSE_PROTOCOL || 'https',
         },
       ],
       apiKey: process.env.TYPESENSE_API_KEY || 'local-api-key',
-      connectionTimeoutSeconds: 2,
+      connectionTimeoutSeconds: 3,
     });
   }
 
@@ -55,7 +55,7 @@ export class SearchService implements OnModuleInit {
       },
     ];
 
-    const maxRetries = 5;
+    const maxRetries = 7;
     let isConnected = false;
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
