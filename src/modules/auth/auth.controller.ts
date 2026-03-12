@@ -6,6 +6,7 @@ import {
   Req,
   UseGuards,
   Res,
+  Query
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags } from '@nestjs/swagger';
@@ -87,7 +88,10 @@ export class AuthController {
   @Get('me')
   @UseGuards(AuthGuard('jwt'))
   @ApiGetProfile()
-  async getProfile(@Req() req) {
-    return this.authService.getProfile(req.user.id, req.user.userType);
-  }
+   async getProfile(@Req() req, @Query('userType') userType?: string) {
+     const type = (userType === 'company' || userType === 'employee') 
+       ? userType 
+       : (req.user?.userType || 'employee');
+     return this.authService.getProfile(req.user.id, type);
+   }
 }

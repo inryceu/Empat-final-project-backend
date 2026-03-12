@@ -40,11 +40,29 @@ export class Resource {
   @Prop({ required: false })
   filePath?: string;
 
-  @Prop({ type: [String], default: [] })
-  tags: string[];
-
   @Prop({ type: [Number], default: [] })
   embedding?: number[];
+
+  @Prop({ default: false })
+  processed: boolean;
+
+  @Prop()
+  processedAt?: Date;
+
+  @Prop()
+  processingError?: string;
+
+  @Prop()
+  extractedContent?: string;
+
+  @Prop()
+  extractedAt?: Date;
+
+  @Prop()
+  contentLength?: number;
+
+  @Prop()
+  originalUrl?: string;
 }
 
 export const ResourceSchema = SchemaFactory.createForClass(Resource);

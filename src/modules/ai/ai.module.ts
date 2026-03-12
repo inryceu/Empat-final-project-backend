@@ -7,6 +7,7 @@ import { DocumentService } from './services/document.service';
 import { ScraperService } from './services/scraper.service';
 import { ResourcesModule } from '../resources/resources.module';
 import { CacheModule } from '../cache/redis.module';
+import { SearchModule } from '../search/resources.module';
 import {
   ResourceChunk,
   ResourceChunkSchema,
@@ -20,6 +21,7 @@ import {
   imports: [
     forwardRef(() => ResourcesModule),
     CacheModule,
+    SearchModule,
     MongooseModule.forFeature([
       { name: ResourceChunk.name, schema: ResourceChunkSchema },
       { name: Resource.name, schema: ResourceSchema },
@@ -27,6 +29,6 @@ import {
   ],
   controllers: [AiController],
   providers: [AiService, GeminiService, DocumentService, ScraperService],
-  exports: [AiService],
+  exports: [AiService, DocumentService, ScraperService],
 })
 export class AiModule {}
