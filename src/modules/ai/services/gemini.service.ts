@@ -79,7 +79,7 @@ export class GeminiService implements OnModuleInit {
     systemInstruction: string,
   ): Promise<string> {
     const model = this.getRotatedModel({
-      model: 'gemini-3.1-flash',
+      model: 'gemini-2.5-flash',
       systemInstruction: systemInstruction,
     });
 
