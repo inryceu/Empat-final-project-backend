@@ -125,7 +125,6 @@ export class ResourcesController {
       'Content-Disposition': `attachment; filename="${encodeURIComponent(resource.fileName || 'downloaded_file')}"`,
     });
 
-    // Читаємо файл з диска
     const fileStream = createReadStream(join(process.cwd(), resource.filePath));
     return new StreamableFile(fileStream);
   }
