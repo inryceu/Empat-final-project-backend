@@ -47,7 +47,7 @@ export class SearchService implements OnModuleInit {
         fields: [
           { name: 'resourceId', type: 'string', facet: true },
           { name: 'companyId', type: 'string', facet: true },
-          { name: 'employeeId', type: 'string', facet: true, optional: true },
+          { name: 'employeeId', type: 'string', facet: true },
           { name: 'chunkIndex', type: 'int32' },
           { name: 'chunkText', type: 'string' },
           { name: 'embedding', type: 'float[]', num_dim: EMBEDDING_DIMENSION },
@@ -128,13 +128,11 @@ export class SearchService implements OnModuleInit {
         id: chunk._id ? chunk._id.toString() : `${chunk.resourceId}-${i}`,
         resourceId: chunk.resourceId.toString(),
         companyId: chunk.companyId.toString(),
+        employeeId: chunk.employeeId ? chunk.employeeId.toString() : 'GLOBAL',
         chunkIndex: chunk.chunkIndex,
         chunkText: chunk.chunkText,
         embedding: chunk.embedding,
       };
-      if (chunk.employeeId) {
-        doc.employeeId = chunk.employeeId.toString();
-      }
       return doc;
     });
 
@@ -157,9 +155,16 @@ export class SearchService implements OnModuleInit {
     employeeId: string | null,
     limit: number = 10,
   ) {
+    // Базовий фільтр: шукаємо тільки в межах конкретної компанії
     let filterBy = `companyId:=${companyId}`;
+
     if (employeeId) {
-      filterBy += ` && (employeeId:=${employeeId} || employeeId:is_missing)`;
+      // Працівник шукає: він має бачити СВОЇ файли + ЗАГАЛЬНІ файли компанії
+      filterBy += ` && employeeId:=[${employeeId}, GLOBAL]`;
+    } else {
+      // Якщо пошук робить система/адмін без прив'язки до працівника, 
+      // шукаємо тільки по загальних файлах (або можна прибрати цей else, щоб шукати по всіх)
+      filterBy += ` && employeeId:=GLOBAL`;
     }
 
     const searchRequest = {
