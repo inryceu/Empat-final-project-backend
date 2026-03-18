@@ -4,7 +4,7 @@ import { EmployeeRole } from 'src/modules/auth/dto/register-employee-enums';
 
 export class CreateInviteDto {
   @ApiProperty({
-    example: 'new.employee@empat.tech',
+    example: 'maluiev.p.a.-im41@edu.kpi.ua',
     description: 'Email майбутнього співробітника',
   })
   @IsEmail()

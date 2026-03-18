@@ -84,7 +84,7 @@ export class AuthService {
     const newEmployee = await this.employeesService.create({
       email: invite.email,
       name: invite.name,
-      companyId: invite.companyId,
+      companyId: invite.companyId.toString(),
       department: invite.department,
       role: invite.role,
 
@@ -192,7 +192,12 @@ export class AuthService {
       };
     }
 
-    const employee = await this.employeesService.findById(userId);
+    const employee = await this.employeesService.findByIdForAuth(userId);
+
+    if (!employee) {
+      throw new UnauthorizedException('Співробітника не знайдено');
+    }
+
     const employeeData = employee.toObject
       ? employee.toObject()
       : { ...employee };

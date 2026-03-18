@@ -7,9 +7,12 @@ import { EmployeesModule } from '../employees/employee.module';
 import { GoogleStrategy } from './strategies/google.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { CompaniesModule } from '../companies/companies.module';
+import { MongooseModule } from '@nestjs/mongoose';
+import { Invite, InviteSchema } from '../companies/schemas/invite.schema';
 
 @Module({
   imports: [
+    MongooseModule.forFeature([{ name: Invite.name, schema: InviteSchema }]),
     EmployeesModule,
     PassportModule,
     forwardRef(() => CompaniesModule),

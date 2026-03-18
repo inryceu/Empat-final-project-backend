@@ -59,8 +59,12 @@ export class ResourcesController {
 
   @Get(':id')
   @ApiFindOneResource()
-  async findOne(@Param('id') id: string) {
-    return this.resourcesService.findOne(id);
+  async findOne(@Req() req, @Param('id') id: string) {
+    const companyId =
+      req.user.userType === 'company' ? req.user.id : req.user.companyId;
+    const employeeId = req.user.userType === 'company' ? null : req.user.id;
+
+    return this.resourcesService.findOne(id, companyId, employeeId);
   }
 
   @Post('url')
@@ -105,19 +109,38 @@ export class ResourcesController {
   @ApiRemoveResource()
   async remove(@Req() req, @Param('id') id: string) {
     const userId = req.user._id?.toString() || req.user.id;
-    return this.resourcesService.remove(id, userId, req.user.userType);
+    const companyId =
+      req.user.userType === 'company' ? userId : req.user.companyId;
+
+    return this.resourcesService.remove(
+      id,
+      companyId,
+      userId,
+      req.user.userType,
+    );
   }
 
   @Get(':id/download')
   @ApiDownloadResource()
   async downloadFile(
+    @Req() req,
     @Param('id') id: string,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const resource = await this.resourcesService.getRawFile(id);
+    const companyId =
+      req.user.userType === 'company' ? req.user.id : req.user.companyId;
+    const employeeId = req.user.userType === 'company' ? null : req.user.id;
+
+    const resource = await this.resourcesService.getRawFile(
+      id,
+      companyId,
+      employeeId,
+    );
 
     if (!resource || resource.type !== 'file' || !resource.filePath) {
-      throw new NotFoundException('Файл не знайдено на сервері');
+      throw new NotFoundException(
+        'Файл не знайдено на сервері або у вас немає доступу',
+      );
     }
 
     res.set({

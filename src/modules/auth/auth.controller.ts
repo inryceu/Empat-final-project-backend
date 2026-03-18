@@ -7,6 +7,7 @@ import {
   UseGuards,
   Res,
   Query,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags } from '@nestjs/swagger';
@@ -44,13 +45,22 @@ export class AuthController {
   @ApiGoogleAuthCallback()
   async googleAuthRedirect(@Req() req, @Res() res: Response) {
     const email = req.user.emails[0].value;
-
-    const { accessToken } = await this.authService.handleGoogleLogin(email);
-
     const frontendUrl = process.env.FRONTEND_URL;
-    const redirectUrl = `${frontendUrl}/auth/success?token=${accessToken}`;
 
-    return res.redirect(redirectUrl);
+    try {
+      const { accessToken } = await this.authService.handleGoogleLogin(email);
+
+      const redirectUrl = `${frontendUrl}/auth/success?token=${accessToken}`;
+      return res.redirect(redirectUrl);
+    } catch (error) {
+      if (error instanceof UnauthorizedException) {
+        const errorUrl = `${frontendUrl}/auth/callback?error=account_not_found`;
+        return res.redirect(302, errorUrl);
+      }
+
+      const serverErrorUrl = `${frontendUrl}/auth/callback?error=server_error`;
+      return res.redirect(302, serverErrorUrl);
+    }
   }
 
   @Post('google/mobile')

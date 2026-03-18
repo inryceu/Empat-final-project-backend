@@ -1,7 +1,6 @@
 import { applyDecorators } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiBody, ApiParam } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { ChatRequestDto } from './dto/chat-request.dto';
-import { WelcomeRequestDto } from './dto/welcome-request.dto';
 
 export function ApiGetAiStatus() {
   return applyDecorators(
@@ -61,20 +60,9 @@ export function ApiChat() {
 export function ApiGenerateWelcome() {
   return applyDecorators(
     ApiOperation({
-      summary: 'Згенерувати персоналізоване привітання',
+      summary: 'Згенерувати привітання компанії',
       description:
-        'Генерує привітне повідомлення для нового співробітника на основі профілю компанії та посади.',
-    }),
-    ApiBody({
-      type: WelcomeRequestDto,
-      description: 'Дані для генерації привітання',
-      schema: {
-        example: {
-          companyId: '65f1a2b3c4d5e6f7a8b9c0d1',
-          employeeName: 'Олександр',
-          position: 'Frontend Developer',
-        },
-      },
+        'Генерує привітне повідомлення для нових співробітників за допомогою ШІ. Дані для генерації (назва компанії, галузь тощо) беруться автоматично з профілю компанії поточного користувача.',
     }),
     ApiResponse({
       status: 200,
@@ -82,10 +70,17 @@ export function ApiGenerateWelcome() {
       schema: {
         example: {
           message:
-            'Привіт, Олександре! Ласкаво просимо до нашої команди на позицію Frontend Developer. Ми раді бачити тебе частиною компанії. Твій перший робочий день розпочнеться із зустрічі з ментором...',
+            'Ласкаво просимо до Tech Corp! Ми раді вітати тебе в нашій команді. У нас попереду багато цікавих проєктів, і ми впевнені, що твій досвід допоможе нам досягти нових висот...',
         },
       },
     }),
-    ApiResponse({ status: 400, description: 'Відсутній companyId у запиті.' }),
+    ApiResponse({
+      status: 400,
+      description: 'Відсутній companyId або недостатньо даних компанії для генерації.',
+    }),
+    ApiResponse({
+      status: 403,
+      description: 'Тільки представники компанії можуть генерувати привітання.',
+    }),
   );
 }
