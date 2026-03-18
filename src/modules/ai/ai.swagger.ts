@@ -62,9 +62,18 @@ export function ApiGenerateWelcome() {
     ApiOperation({
       summary: 'Згенерувати персоналізоване привітання',
       description:
-        'Генерує привітне повідомлення для нового співробітника на основі профілю компанії та посади.',
+        'Генерує привітне повідомлення для нового співробітника за допомогою ШІ на основі профілю компанії, посади та імені працівника.',
     }),
-    ApiBody({}),
+    ApiBody({
+      description: 'Дані працівника для генерації персоналізованого тексту',
+      schema: {
+        example: {
+          employeeName: 'Олександр',
+          role: 'Frontend Developer',
+          department: 'IT',
+        },
+      },
+    }),
     ApiResponse({
       status: 200,
       description: 'Згенероване привітання у текстовому форматі.',
@@ -75,6 +84,13 @@ export function ApiGenerateWelcome() {
         },
       },
     }),
-    ApiResponse({ status: 400, description: 'Відсутній companyId у запиті.' }),
+    ApiResponse({
+      status: 400,
+      description: 'Неправильний запит (наприклад, відсутні необхідні поля).',
+    }),
+    ApiResponse({
+      status: 403,
+      description: 'Тільки представники компанії можуть генерувати привітання.',
+    }),
   );
 }

@@ -83,11 +83,15 @@ export class ScraperService {
     try {
       browser = await puppeteer.launch({
         executablePath:
-          process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium',
+          process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium-browser',
+        headless: true,
         args: [
-          '--no-sandbox',
-          '--disable-setuid-sandbox',
-          '--disable-dev-shm-usage',
+          '--no-sandbox', // КРИТИЧНО для Docker
+          '--disable-setuid-sandbox', // КРИТИЧНО для Docker
+          '--disable-dev-shm-usage', // Вирішує проблему з нестачею пам'яті (використовує /tmp замість /dev/shm)
+          '--disable-gpu',
+          '--single-process', // Запускає все в одному процесі (краще для Alpine)
+          '--no-zygote',
         ],
       });
 

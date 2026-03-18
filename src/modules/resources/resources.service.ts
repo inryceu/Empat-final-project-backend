@@ -43,6 +43,55 @@ export class ResourcesService {
     };
   }
 
+  private async getResourceSecurely(
+    id: string,
+    companyId: string,
+    employeeId: string | null = null,
+  ) {
+    const query: any = { _id: id, companyId };
+
+    if (employeeId) {
+      query.$or = [{ employeeId: null }, { employeeId }];
+    }
+
+    const resource = await this.resourceModel.findOne(query).exec();
+    if (!resource) {
+      throw new NotFoundException('Ресурс не знайдено або у вас немає доступу');
+    }
+    return resource;
+  }
+
+  private async finalizeProcessing(
+    resourceId: string,
+    companyId: string,
+    employeeId: string | null,
+    content: string,
+  ) {
+    if (!content || content.trim().length === 0) {
+      throw new BadRequestException('Не вдалося отримати текст для обробки');
+    }
+
+    try {
+      await this.aiService.processAndSaveChunks(
+        resourceId,
+        companyId,
+        employeeId,
+        content,
+      );
+      await this.updateResourceStatus(resourceId, {
+        processed: true,
+        processedAt: new Date(),
+      });
+    } catch (error: any) {
+      await this.updateResourceStatus(resourceId, {
+        processed: false,
+        processingError: error.message,
+        processedAt: new Date(),
+      });
+      throw error;
+    }
+  }
+
   async addUrlResource(
     dto: AddUrlResourceDto,
     companyId: string,
@@ -114,23 +163,42 @@ export class ResourcesService {
     return resources.map((res) => this.serializeResource(res));
   }
 
-  async findOne(id: string) {
-    const resource = await this.resourceModel.findById(id).exec();
-    if (!resource) throw new NotFoundException('Ресурс не знайдено');
+  async findOne(
+    id: string,
+    companyId: string,
+    employeeId: string | null = null,
+  ) {
+    const resource = await this.getResourceSecurely(id, companyId, employeeId);
     return this.serializeResource(resource);
   }
 
-  async remove(id: string, userId: string, userType: 'company' | 'employee') {
-    const resource = await this.resourceModel.findById(id).exec();
-    if (!resource) throw new NotFoundException('Ресурс не знайдено');
-    if (userType === 'employee' && resource.employeeId?.toString() !== userId) {
-      throw new BadRequestException('Ви можете видаляти лише власні ресурси');
-    }
-    await this.resourceModel.findByIdAndDelete(id).exec();
+  async getRawFile(
+    id: string,
+    companyId: string,
+    employeeId: string | null = null,
+  ) {
+    return this.getResourceSecurely(id, companyId, employeeId);
   }
 
-  async getRawFile(id: string) {
-    return this.resourceModel.findById(id).exec();
+  async remove(
+    id: string,
+    companyId: string,
+    userId: string,
+    userType: 'company' | 'employee',
+  ) {
+    const query: any = { _id: id, companyId };
+
+    if (userType === 'employee') {
+      query.employeeId = userId;
+    }
+
+    const resource = await this.resourceModel.findOneAndDelete(query).exec();
+
+    if (!resource) {
+      throw new NotFoundException(
+        'Ресурс не знайдено або у вас немає прав на його видалення',
+      );
+    }
   }
 
   async updateResourceStatus(id: string, statusData: Partial<Resource>) {
@@ -140,7 +208,7 @@ export class ResourcesService {
   }
 
   async processFile(resourceId: string): Promise<void> {
-    const resource = await this.getRawFile(resourceId);
+    const resource = await this.resourceModel.findById(resourceId).exec(); // Internal lookup, trusted ID
     if (
       !resource ||
       resource.type !== 'file' ||
@@ -159,23 +227,16 @@ export class ResourcesService {
         resource.fileName,
       );
 
-      if (!content || content.trim().length === 0)
-        throw new BadRequestException('Не вдалося розпізнати текст у файлі');
-
-      await this.aiService.processAndSaveChunks(
+      await this.finalizeProcessing(
         resourceId,
         resource.companyId.toString(),
         resource.employeeId?.toString() || null,
         content,
       );
-      await this.updateResourceStatus(resourceId, {
-        processed: true,
-        processedAt: new Date(),
-      });
     } catch (error: any) {
       await this.updateResourceStatus(resourceId, {
         processed: false,
-        processingError: error.message,
+        processingError: error.message || 'Помилка зчитування файлу',
         processedAt: new Date(),
       });
       throw error;
@@ -183,9 +244,10 @@ export class ResourcesService {
   }
 
   async processUrl(resourceId: string): Promise<void> {
-    const resource = await this.resourceModel.findById(resourceId).exec();
-    if (!resource || resource.type !== 'url' || !resource.url)
+    const resource = await this.resourceModel.findById(resourceId).exec(); // Internal lookup, trusted ID
+    if (!resource || resource.type !== 'url' || !resource.url) {
       throw new Error('Invalid URL resource');
+    }
 
     try {
       const cleanedDocument = await this.scraperService.scrapeWebPage(
@@ -204,20 +266,16 @@ export class ResourcesService {
         originalUrl: resource.url,
       });
 
-      await this.aiService.processAndSaveChunks(
+      await this.finalizeProcessing(
         resourceId,
         resource.companyId.toString(),
         resource.employeeId?.toString() || null,
         cleanedDocument,
       );
-      await this.updateResourceStatus(resourceId, {
-        processed: true,
-        processedAt: new Date(),
-      });
     } catch (error: any) {
       await this.updateResourceStatus(resourceId, {
         processed: false,
-        processingError: error.message,
+        processingError: error.message || 'Помилка скрапінгу URL',
         processedAt: new Date(),
       });
       throw error;
