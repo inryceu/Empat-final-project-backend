@@ -141,3 +141,126 @@ export function ApiAddDepartment() {
     }),
   );
 }
+
+export function ApiUpdateEmployee() {
+  return applyDecorators(
+    ApiBearerAuth(),
+    ApiOperation({
+      summary: 'Оновити дані співробітника або запрошення (лише для компанії)',
+      description:
+        'Дозволяє компанії оновити дані свого активного співробітника або змінити деталі надісланого запрошення (яке ще не прийняте).',
+    }),
+    ApiParam({
+      name: 'employeeId',
+      description: 'Унікальний ID співробітника або ID запрошення',
+      example: '65f1a2b3c4d5e6f7a8b9c0d1',
+    }),
+    ApiBody({
+      description: 'Поля, які потрібно оновити (всі поля є необов’язковими)',
+      schema: {
+        example: {
+          email: 'new.email@techcorp.com',
+          department: 'Marketing',
+          role: 'senior',
+        },
+      },
+    }),
+    ApiResponse({
+      status: 200,
+      description: 'Дані успішно оновлено',
+      content: {
+        'application/json': {
+          examples: {
+            activeEmployee: {
+              summary: 'Успішне оновлення (Активний співробітник)',
+              value: {
+                message: 'Співробітника оновлено',
+                data: {
+                  _id: '65f1a2b3c4d5e6f7a8b9c0d1',
+                  email: 'new.email@techcorp.com',
+                  name: 'Jane Smith',
+                  department: 'Marketing',
+                  role: 'senior',
+                  companyId: '65f1a2b3c4d5e6f7a8b9c0d1',
+                  createdAt: '2026-03-05T10:00:00.000Z',
+                  updatedAt: '2026-03-18T10:00:00.000Z',
+                },
+                status: 'active',
+              },
+            },
+            pendingInvite: {
+              summary: 'Успішне оновлення (Запрошення)',
+              value: {
+                message: 'Запрошення оновлено',
+                data: {
+                  _id: '65f1a2b3c4d5e6f7a8b9c0d2',
+                  email: 'new.email@techcorp.com',
+                  name: 'Jane Smith',
+                  department: 'Marketing',
+                  role: 'senior',
+                  companyId: '65f1a2b3c4d5e6f7a8b9c0d1',
+                  token: '74f817d8b0c446aa738fbcedc601...',
+                  createdAt: '2026-03-05T10:00:00.000Z',
+                  updatedAt: '2026-03-18T10:00:00.000Z',
+                },
+                status: 'pending',
+              },
+            },
+          },
+        },
+      },
+    }),
+    ApiResponse({
+      status: 403,
+      description:
+        'Доступ заборонено (тільки компанії можуть виконувати цю дію)',
+      schema: {
+        example: {
+          message: 'Тільки компанії можуть оновлювати дані співробітників',
+          error: 'Forbidden',
+          statusCode: 403,
+        },
+      },
+    }),
+    ApiResponse({
+      status: 404,
+      description:
+        'Співробітника або запрошення не знайдено (або належить іншій компанії)',
+      schema: {
+        example: {
+          message:
+            'Співробітника або запрошення з ID 65f1a2b3c4d5e6f7a8b9c0d1 не знайдено',
+          error: 'Not Found',
+          statusCode: 404,
+        },
+      },
+    }),
+    ApiResponse({
+      status: 409,
+      description: 'Конфлікт електронної пошти',
+      content: {
+        'application/json': {
+          examples: {
+            employeeConflict: {
+              summary: 'Пошта зайнята іншим активним співробітником',
+              value: {
+                message: 'Співробітник з таким email вже існує.',
+                error: 'Conflict',
+                statusCode: 409,
+              },
+            },
+            inviteConflict: {
+              summary: 'Пошта зайнята іншим запрошенням',
+              value: {
+                message:
+                  'Запрошення на цю пошту вже відправлено іншому користувачу.',
+                error: 'Conflict',
+                statusCode: 409,
+              },
+            },
+          },
+        },
+      },
+    }),
+  );
+}

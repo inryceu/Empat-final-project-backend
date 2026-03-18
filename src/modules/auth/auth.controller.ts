@@ -49,16 +49,15 @@ export class AuthController {
 
     try {
       const { accessToken } = await this.authService.handleGoogleLogin(email);
-      
+
       const redirectUrl = `${frontendUrl}/auth/success?token=${accessToken}`;
       return res.redirect(redirectUrl);
-      
     } catch (error) {
       if (error instanceof UnauthorizedException) {
         const errorUrl = `${frontendUrl}/auth/callback?error=account_not_found`;
         return res.redirect(302, errorUrl);
       }
-      
+
       const serverErrorUrl = `${frontendUrl}/auth/callback?error=server_error`;
       return res.redirect(302, serverErrorUrl);
     }

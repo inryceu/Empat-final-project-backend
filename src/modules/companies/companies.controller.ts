@@ -29,6 +29,7 @@ import {
   ApiInviteEmployee,
   ApiAddDepartment,
   ApiGetDepartments,
+  ApiUpdateEmployee,
 } from './companies.swagger';
 
 @ApiTags('Companies - Компанії')
@@ -115,7 +116,7 @@ export class CompaniesController {
   }
 
   @Patch('employees/:employeeId')
-  // @ApiUpdateEmployee()
+  @ApiUpdateEmployee()
   async updateEmployee(
     @Req() req,
     @Param('employeeId') employeeId: string,
