@@ -32,7 +32,7 @@ export class RegisterCompanyDto {
   contactName: string;
 
   @ApiProperty({
-    example: 'john@techcorp.com',
+    example: 'pavel.maluev@gmail.com',
     description: 'Contact email for the company',
   })
   @IsEmail()

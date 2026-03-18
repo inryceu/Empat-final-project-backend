@@ -43,16 +43,19 @@ export class AiController {
   @Post('welcome')
   @HttpCode(HttpStatus.OK)
   @ApiGenerateWelcome()
-  async generateWelcome(@Req() req, @Body() body: WelcomeRequestDto) {
-    const companyId =
-      req.user.userType === 'company' ? req.user.id : req.user.companyId;
-    const employeeId = req.user.userType === 'company' ? null : req.user.id;
+  async generateWelcome(@Req() req) {
+    const user = req.user as any;
+    const isCompany = user.userType === 'company';
 
-    return this.aiService.generateWelcomeMessage({
-      companyId,
-      employeeId,
-      employeeName: body.employeeName,
-      department: body.department,
-    });
+    const data = {
+      companyId: isCompany ? user.id : user.companyId,
+
+      employeeId: isCompany ? null : user.id,
+
+      employeeName: user.name,
+      department: user.department,
+    };
+
+    return this.aiService.generateWelcomeMessage(data);
   }
 }

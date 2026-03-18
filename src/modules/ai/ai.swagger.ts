@@ -1,7 +1,6 @@
 import { applyDecorators } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiBody, ApiParam } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { ChatRequestDto } from './dto/chat-request.dto';
-import { WelcomeRequestDto } from './dto/welcome-request.dto';
 
 export function ApiGetAiStatus() {
   return applyDecorators(
@@ -65,17 +64,7 @@ export function ApiGenerateWelcome() {
       description:
         'Генерує привітне повідомлення для нового співробітника на основі профілю компанії та посади.',
     }),
-    ApiBody({
-      type: WelcomeRequestDto,
-      description: 'Дані для генерації привітання',
-      schema: {
-        example: {
-          companyId: '65f1a2b3c4d5e6f7a8b9c0d1',
-          employeeName: 'Олександр',
-          position: 'Frontend Developer',
-        },
-      },
-    }),
+    ApiBody({}),
     ApiResponse({
       status: 200,
       description: 'Згенероване привітання у текстовому форматі.',
