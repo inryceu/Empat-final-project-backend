@@ -1,4 +1,3 @@
-// src/modules/resources/resources.service.ts
 import {
   Injectable,
   Inject,
@@ -7,7 +6,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import { Model } from 'mongoose';
 import { join } from 'path';
 import { Resource, ResourceDocument } from './schemas/resource.schema';
 import {

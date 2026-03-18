@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import mongoose, { HydratedDocument } from 'mongoose';
+import mongoose, { HydratedDocument, Types } from 'mongoose';
 import { EmployeeRole } from 'src/modules/auth/dto/register-employee-enums';
 
 export type InviteDocument = HydratedDocument<Invite>;
@@ -17,7 +17,7 @@ export class Invite {
     ref: 'Company',
     required: true,
   })
-  companyId: string;
+  companyId: Types.ObjectId | string;
 
   @Prop({ required: true })
   name: string;

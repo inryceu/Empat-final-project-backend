@@ -28,6 +28,14 @@ export class CompaniesService {
     private employeesService: EmployeesService,
   ) {}
 
+  async findInviteByToken(token: string): Promise<InviteDocument | null> {
+    return this.inviteModel.findOne({ token }).exec();
+  }
+
+  async deleteInvite(id: string): Promise<void> {
+    await this.inviteModel.findByIdAndDelete(id).exec();
+  }
+
   private serializeCompany(company: CompanyDocument): any {
     const { _id, password, __v, ...rest } = company.toObject();
     return { id: _id.toString(), ...rest };
@@ -140,44 +148,65 @@ export class CompaniesService {
     employeeOrInviteId: string,
     updateData: UpdateEmployeeDto,
   ) {
-    const employee = await this.employeeModel.findOne({
-      _id: employeeOrInviteId,
-      companyId,
-    });
+    if (updateData.email) {
+      const emailInEmployees = await this.employeeModel
+        .findOne({
+          email: updateData.email,
+          _id: { $ne: employeeOrInviteId },
+        })
+        .exec();
 
-    if (employee) {
-      const updatedEmployee = await this.employeeModel.findByIdAndUpdate(
-        employeeOrInviteId,
-        { $set: updateData },
-        { new: true },
-      );
-      return { message: 'Дані співробітника оновлено', data: updatedEmployee };
+      if (emailInEmployees) {
+        throw new ConflictException('Співробітник з таким email вже існує.');
+      }
+
+      const emailInInvites = await this.inviteModel
+        .findOne({
+          email: updateData.email,
+          _id: { $ne: employeeOrInviteId },
+        })
+        .exec();
+
+      if (emailInInvites) {
+        throw new ConflictException(
+          'Запрошення на цю пошту вже відправлено іншому користувачу.',
+        );
+      }
     }
 
-    const invite = await this.inviteModel.findOne({
-      _id: employeeOrInviteId,
-      companyId,
-    });
+    const updatedEmployee = await this.employeeModel
+      .findOneAndUpdate({ _id: employeeOrInviteId, companyId }, updateData, {
+        new: true,
+      })
+      .select('-password')
+      .lean()
+      .exec();
 
-    if (invite) {
-      const updatedInvite = await this.inviteModel.findByIdAndUpdate(
-        employeeOrInviteId,
-        { $set: updateData },
-        { new: true },
-      );
-      return { message: 'Запрошення оновлено', data: updatedInvite };
+    if (updatedEmployee) {
+      return {
+        message: 'Співробітника оновлено',
+        data: updatedEmployee,
+        status: 'active',
+      };
+    }
+
+    const updatedInvite = await this.inviteModel
+      .findOneAndUpdate({ _id: employeeOrInviteId, companyId }, updateData, {
+        new: true,
+      })
+      .lean()
+      .exec();
+
+    if (updatedInvite) {
+      return {
+        message: 'Запрошення оновлено',
+        data: updatedInvite,
+        status: 'pending',
+      };
     }
 
     throw new NotFoundException(
-      'Співробітника або активне запрошення не знайдено',
+      `Співробітника або запрошення з ID ${employeeOrInviteId} не знайдено`,
     );
-  }
-
-  async findInviteByToken(token: string) {
-    return this.inviteModel.findOne({ token }).exec();
-  }
-
-  async deleteInvite(inviteId: string) {
-    await this.inviteModel.findByIdAndDelete(inviteId).exec();
   }
 }

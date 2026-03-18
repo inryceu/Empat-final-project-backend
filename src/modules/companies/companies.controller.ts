@@ -115,7 +115,7 @@ export class CompaniesController {
   }
 
   @Patch('employees/:employeeId')
-  // @ApiUpdateEmployee() // Не забудь додати цей декоратор у companies.swagger.ts
+  // @ApiUpdateEmployee()
   async updateEmployee(
     @Req() req,
     @Param('employeeId') employeeId: string,
