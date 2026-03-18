@@ -22,8 +22,6 @@ import { AddDepartmentDto } from './dto/add-department.dto';
 import { UpdateEmployeeDto } from './dto/update-employee.dto';
 
 import {
-  ApiFindAllCompanies,
-  ApiFindOneCompany,
   ApiUpdateCompany,
   ApiDeleteCompany,
   ApiInviteEmployee,
@@ -39,18 +37,6 @@ import {
 @UseGuards(AuthGuard('jwt'))
 export class CompaniesController {
   constructor(private readonly companiesService: CompaniesService) {}
-
-  @Get()
-  @ApiFindAllCompanies()
-  async findAll(): Promise<Company[]> {
-    return this.companiesService.findAll();
-  }
-
-  @Get(':id')
-  @ApiFindOneCompany()
-  async findOne(@Param('id') id: string): Promise<Company> {
-    return this.companiesService.findOne(id);
-  }
 
   @Patch(':id')
   @ApiUpdateCompany()

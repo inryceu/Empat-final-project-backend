@@ -19,23 +19,6 @@ const companyExample = {
   updatedAt: '2026-03-05T10:00:00.000Z',
 };
 
-export function ApiFindAllCompanies() {
-  return applyDecorators(
-    ApiBearerAuth(),
-    ApiOperation({ summary: 'Отримати список усіх компаній' }),
-    ApiResponse({ status: 200, schema: { example: [companyExample] } }),
-  );
-}
-
-export function ApiFindOneCompany() {
-  return applyDecorators(
-    ApiBearerAuth(),
-    ApiOperation({ summary: 'Отримати дані компанії за ID' }),
-    ApiParam({ name: 'id', example: '65f1a2b3c4d5e6f7a8b9c0d1' }),
-    ApiResponse({ status: 200, schema: { example: companyExample } }),
-  );
-}
-
 export function ApiUpdateCompany() {
   return applyDecorators(
     ApiBearerAuth(),
