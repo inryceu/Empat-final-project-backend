@@ -1,5 +1,12 @@
-import { IsString, IsEmail, MinLength, IsNotEmpty } from 'class-validator';
+import {
+  IsString,
+  IsEmail,
+  MinLength,
+  IsNotEmpty,
+  IsEnum,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { CompanySize, Industry } from './register-company-enums';
 
 export class RegisterCompanyDto {
   @ApiProperty({ example: 'Tech Corp', description: 'Name of the company' })
@@ -8,20 +15,26 @@ export class RegisterCompanyDto {
   name: string;
 
   @ApiProperty({
-    example: 'Technology',
-    description: 'Industry the company operates in',
+    enum: Industry,
+    example: Industry.TECHNOLOGY,
+    description: 'Галузь, в якій працює компанія',
   })
-  @IsString()
-  @IsNotEmpty()
-  industry: string;
+  @IsEnum(Industry, {
+    message: 'Недійсне значення галузі. Оберіть із: technology, finance, other',
+  })
+  @IsNotEmpty({ message: 'Галузь є обов’язковою' })
+  industry: Industry;
 
   @ApiProperty({
-    example: '51-200',
-    description: 'Size of the company (number of employees)',
+    enum: CompanySize,
+    example: CompanySize.MEDIUM,
+    description: 'Розмір компанії',
   })
-  @IsString()
-  @IsNotEmpty()
-  size: string;
+  @IsEnum(CompanySize, {
+    message: 'Недійсний розмір компанії. Оберіть із: 1-20, 21-50, 51-200',
+  })
+  @IsNotEmpty({ message: 'Розмір компанії є обов’язковим' })
+  size: CompanySize;
 
   @ApiProperty({
     example: 'John Doe',
