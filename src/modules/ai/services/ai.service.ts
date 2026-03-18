@@ -114,7 +114,7 @@ export class AiService {
 
   async generateWelcomeMessage(data: {
     companyId: string;
-    employeeId: string;
+    employeeId: string | null;
     employeeName?: string;
     department?: string;
   }): Promise<{ content: string; sources: any[] }> {

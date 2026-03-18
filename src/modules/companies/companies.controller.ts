@@ -19,6 +19,7 @@ import { RegisterCompanyDto } from '../auth/dto/register-company.dto';
 import { Company } from './company.interface';
 import { CreateInviteDto } from './dto/create-invite.dto';
 import { AddDepartmentDto } from './dto/add-department.dto';
+import { UpdateEmployeeDto } from './dto/update-employee.dto';
 
 import {
   ApiFindAllCompanies,
@@ -111,5 +112,23 @@ export class CompaniesController {
     const companyId = req.user._id?.toString() || req.user.id;
 
     return this.companiesService.inviteEmployee(companyId, dto);
+  }
+
+  @Patch('employees/:employeeId')
+  // @ApiUpdateEmployee() // Не забудь додати цей декоратор у companies.swagger.ts
+  async updateEmployee(
+    @Req() req,
+    @Param('employeeId') employeeId: string,
+    @Body() dto: UpdateEmployeeDto,
+  ) {
+    if (req.user.userType !== 'company') {
+      throw new ForbiddenException(
+        'Тільки компанії можуть оновлювати дані співробітників',
+      );
+    }
+
+    const companyId = req.user._id?.toString() || req.user.id;
+
+    return this.companiesService.updateEmployee(companyId, employeeId, dto);
   }
 }

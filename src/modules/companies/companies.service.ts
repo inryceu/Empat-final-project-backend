@@ -12,12 +12,18 @@ import { Company, CompanyDocument } from './schemas/company.schema';
 import { Invite, InviteDocument } from './schemas/invite.schema';
 import { RegisterCompanyDto } from '../auth/dto/register-company.dto';
 import { CreateInviteDto } from './dto/create-invite.dto';
-import { EmployeesService } from '../employees/employee.service';
+import {
+  EmployeesDocument,
+  EmployeesService,
+} from '../employees/employee.service';
+import { UpdateEmployeeDto } from './dto/update-employee.dto';
+import { Employee } from '../employees/schemas/employee.schema';
 
 @Injectable()
 export class CompaniesService {
   constructor(
     @InjectModel(Company.name) private companyModel: Model<CompanyDocument>,
+    @InjectModel(Employee.name) private employeeModel: Model<EmployeesDocument>,
     @InjectModel(Invite.name) private inviteModel: Model<InviteDocument>,
     private employeesService: EmployeesService,
   ) {}
@@ -127,6 +133,44 @@ export class CompaniesService {
       message: 'Запрошення успішно створено',
       inviteLink: `${process.env.FRONTEND_URL}/register-employee?token=${inviteToken}`,
     };
+  }
+
+  async updateEmployee(
+    companyId: string,
+    employeeOrInviteId: string,
+    updateData: UpdateEmployeeDto,
+  ) {
+    const employee = await this.employeeModel.findOne({
+      _id: employeeOrInviteId,
+      companyId,
+    });
+
+    if (employee) {
+      const updatedEmployee = await this.employeeModel.findByIdAndUpdate(
+        employeeOrInviteId,
+        { $set: updateData },
+        { new: true },
+      );
+      return { message: 'Дані співробітника оновлено', data: updatedEmployee };
+    }
+
+    const invite = await this.inviteModel.findOne({
+      _id: employeeOrInviteId,
+      companyId,
+    });
+
+    if (invite) {
+      const updatedInvite = await this.inviteModel.findByIdAndUpdate(
+        employeeOrInviteId,
+        { $set: updateData },
+        { new: true },
+      );
+      return { message: 'Запрошення оновлено', data: updatedInvite };
+    }
+
+    throw new NotFoundException(
+      'Співробітника або активне запрошення не знайдено',
+    );
   }
 
   async findInviteByToken(token: string) {

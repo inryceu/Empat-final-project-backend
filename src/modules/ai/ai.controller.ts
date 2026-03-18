@@ -12,7 +12,6 @@ import { AuthGuard } from '@nestjs/passport';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { AiService } from './services/ai.service';
 import { ChatRequestDto } from './dto/chat-request.dto';
-import { WelcomeRequestDto } from './dto/welcome-request.dto';
 
 import { ApiGetAiStatus, ApiChat, ApiGenerateWelcome } from './ai.swagger';
 
@@ -33,9 +32,10 @@ export class AiController {
   @HttpCode(HttpStatus.OK)
   @ApiChat()
   async chat(@Req() req, @Body() body: ChatRequestDto) {
-    const companyId =
-      req.user.userType === 'company' ? req.user.id : req.user.companyId;
-    const employeeId = req.user.userType === 'company' ? null : req.user.id;
+    const isCompany = req.user.userType === 'company';
+
+    const companyId = isCompany ? req.user.id : req.user.companyId;
+    const employeeId = isCompany ? null : req.user.id;
 
     return this.aiService.generateResponse(body.query, companyId, employeeId);
   }
