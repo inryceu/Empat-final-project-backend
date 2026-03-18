@@ -2,13 +2,13 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsEmail, IsString, MinLength, IsNotEmpty } from 'class-validator';
 
 export class LoginDto {
-  @ApiProperty({ example: 'pavel.maluev@gmail.com' })
-  @IsEmail({}, { message: 'Невірний формат email' })
+  @ApiProperty({ example: 'maluiev.p.a.-im41@edu.kpi.ua' })
+  @IsEmail({}, { message: 'Неправильний формат email' })
   email: string;
 
-  @ApiProperty({ example: 'securePassword123' })
+  @ApiProperty({ example: 'Password123!' })
   @IsString()
-  @MinLength(8, { message: 'Пароль має містити мінімум 6 символів' })
+  @MinLength(8, { message: 'Пароль має містити мінімум 8 символів' })
   password: string;
 }
 

@@ -19,15 +19,15 @@ import { RegisterCompanyDto } from '../auth/dto/register-company.dto';
 import { Company } from './company.interface';
 import { CreateInviteDto } from './dto/create-invite.dto';
 import { AddDepartmentDto } from './dto/add-department.dto';
+import { UpdateEmployeeDto } from './dto/update-employee.dto';
 
 import {
-  ApiFindAllCompanies,
-  ApiFindOneCompany,
   ApiUpdateCompany,
   ApiDeleteCompany,
   ApiInviteEmployee,
   ApiAddDepartment,
   ApiGetDepartments,
+  ApiUpdateEmployee,
 } from './companies.swagger';
 
 @ApiTags('Companies - Компанії')
@@ -37,18 +37,6 @@ import {
 @UseGuards(AuthGuard('jwt'))
 export class CompaniesController {
   constructor(private readonly companiesService: CompaniesService) {}
-
-  @Get()
-  @ApiFindAllCompanies()
-  async findAll(): Promise<Company[]> {
-    return this.companiesService.findAll();
-  }
-
-  @Get(':id')
-  @ApiFindOneCompany()
-  async findOne(@Param('id') id: string): Promise<Company> {
-    return this.companiesService.findOne(id);
-  }
 
   @Patch(':id')
   @ApiUpdateCompany()
@@ -111,5 +99,23 @@ export class CompaniesController {
     const companyId = req.user._id?.toString() || req.user.id;
 
     return this.companiesService.inviteEmployee(companyId, dto);
+  }
+
+  @Patch('employees/:employeeId')
+  @ApiUpdateEmployee()
+  async updateEmployee(
+    @Req() req,
+    @Param('employeeId') employeeId: string,
+    @Body() dto: UpdateEmployeeDto,
+  ) {
+    if (req.user.userType !== 'company') {
+      throw new ForbiddenException(
+        'Тільки компанії можуть оновлювати дані співробітників',
+      );
+    }
+
+    const companyId = req.user._id?.toString() || req.user.id;
+
+    return this.companiesService.updateEmployee(companyId, employeeId, dto);
   }
 }

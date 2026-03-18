@@ -6,12 +6,14 @@ import { Company, CompanySchema } from './schemas/company.schema';
 import { AuthModule } from '../auth/auth.module';
 import { Invite, InviteSchema } from './schemas/invite.schema';
 import { EmployeesModule } from '../employees/employee.module';
+import { Employee, EmployeeSchema } from '../employees/schemas/employee.schema';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: Company.name, schema: CompanySchema },
       { name: Invite.name, schema: InviteSchema },
+      { name: Employee.name, schema: EmployeeSchema },
     ]),
     forwardRef(() => AuthModule),
     forwardRef(() => EmployeesModule),
