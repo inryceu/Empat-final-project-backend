@@ -33,10 +33,10 @@ export class ResourcesService {
   ) {}
 
   private serializeResource(res: ResourceDocument) {
-    const { __v, ...rest } = res.toObject();
+    const { __v, embedding, _id, ...rest } = res.toObject();
     return {
       ...rest,
-      id: res._id.toString(),
+      id: _id.toString(),
       fileUrl:
         rest.type === 'file'
           ? `${process.env.FRONTEND_URL}/api/v1/resources/${res._id}/download`
