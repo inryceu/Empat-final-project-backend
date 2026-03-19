@@ -59,3 +59,30 @@ export const GENERATE_PERSONALIZED_WELCOME = (
   Available resources: \n${resourceTitles}
   Relevant content:\n${context}
   Create a warm, personalized welcome message highlighting the most relevant information for this employee based on their profile.`;
+
+export const generateAvatarPrompt = (user: any) => {
+  const genderMap = {
+    male: 'young man',
+    female: 'young woman',
+    other: 'person',
+    preferNotToSay: 'character',
+  };
+
+  const baseCharacter = user.favoriteAnimal
+    ? `an anthropomorphic cute ${user.favoriteAnimal}`
+    : `a ${genderMap[user.gender || 'preferNotToSay']}`;
+
+  const hobbiesStr = user.hobbies
+    ? `They are interacting with items related to: ${user.hobbies}.`
+    : '';
+  const departmentStr = user.department
+    ? `The setting reflects a ${user.department} workspace.`
+    : '';
+
+  return `A high-quality 3D rendered profile picture in modern Pixar or Disney animation style. 
+  The main character is ${baseCharacter}. 
+  ${departmentStr} 
+  ${hobbiesStr} 
+  They are looking directly at the camera with a friendly, welcoming smile. 
+  The background is a vibrant, solid corporate color, soft studio lighting, highly detailed, centered composition, perfect for a profile avatar.`;
+};

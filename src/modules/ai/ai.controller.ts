@@ -7,13 +7,19 @@ import {
   HttpCode,
   HttpStatus,
   Req,
+  ForbiddenException,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { AiService } from './services/ai.service';
 import { ChatRequestDto } from './dto/chat-request.dto';
 
-import { ApiGetAiStatus, ApiChat, ApiGenerateWelcome } from './ai.swagger';
+import {
+  ApiGetAiStatus,
+  ApiChat,
+  ApiGenerateWelcome,
+  ApiGetOrGenerateAvatar,
+} from './ai.swagger';
 
 @ApiTags('AI - RAG System')
 @ApiBearerAuth()
@@ -57,5 +63,22 @@ export class AiController {
     };
 
     return this.aiService.generateWelcomeMessage(data);
+  }
+
+  @Post('avatar')
+  @HttpCode(HttpStatus.OK)
+  @ApiGetOrGenerateAvatar()
+  async getOrGenerateAvatar(@Req() req) {
+    const user = req.user as any;
+
+    console.log(req.user);
+
+    if (user.userType === 'company') {
+      throw new ForbiddenException(
+        'Тільки співробітники можуть мати персоналізовані AI-аватари',
+      );
+    }
+
+    return this.aiService.getOrGenerateAvatar(user.companyId, user.id);
   }
 }

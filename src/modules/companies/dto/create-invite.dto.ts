@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEmail, IsString, IsEnum } from 'class-validator';
-import { EmployeeRole } from 'src/modules/auth/dto/register-employee-enums';
+import { EmployeeRole } from '../../auth/dto/register-employee-enums';
 
 export class CreateInviteDto {
   @ApiProperty({

@@ -123,4 +123,20 @@ export class EmployeesService {
       `Співробітника або запрошення з ID ${id} не знайдено`,
     );
   }
+
+  async updateAvatar(employeeId: string, avatarUrl: string): Promise<void> {
+    const updatedEmployee = await this.employeeModel
+      .findByIdAndUpdate(
+        employeeId,
+        { $set: { avatarUrl } },
+        { returnDocument: 'after' },
+      )
+      .exec();
+
+    if (!updatedEmployee) {
+      throw new NotFoundException(
+        `Співробітника з ID ${employeeId} не знайдено`,
+      );
+    }
+  }
 }

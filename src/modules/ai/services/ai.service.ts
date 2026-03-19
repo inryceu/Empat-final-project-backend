@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { CacheService } from '../../cache/services/cache.service';
@@ -8,6 +8,7 @@ import {
   GENERATE_PERSONALIZED_WELCOME,
   SYSTEM_PROMPT,
   WELCOME_SYSTEM_PROMPT,
+  generateAvatarPrompt,
 } from '../constants/prompts.constant';
 import { ResourceChunk } from '../schemas/resource-chunk.schema';
 import { Resource } from '../../resources/schemas/resource.schema';
@@ -18,6 +19,7 @@ import {
   generateGenericWelcome,
 } from '../utils/chunks.utils';
 import { SearchService } from '../../search/search.service';
+import { EmployeesService } from '../../employees/employee.service';
 
 @Injectable()
 export class AiService {
@@ -28,6 +30,7 @@ export class AiService {
     private cacheService: CacheService,
     private geminiService: GeminiService,
     private documentService: DocumentService,
+    private readonly employeesService: EmployeesService,
   ) {}
 
   async getStatus() {
@@ -178,5 +181,36 @@ export class AiService {
     return Array.from(allChunks.values())
       .sort((a, b) => a.score - b.score)
       .slice(0, limit);
+  }
+
+  async getOrGenerateAvatar(companyId: string, employeeId: string) {
+    const employee = await this.employeesService.findById(
+      companyId,
+      employeeId,
+    );
+
+    if (!employee) {
+      throw new NotFoundException('Співробітника не знайдено');
+    }
+
+    if (employee.avatarUrl) {
+      return {
+        isNew: false,
+        avatarUrl: employee.avatarUrl,
+      };
+    }
+
+    const prompt = generateAvatarPrompt(employee);
+
+    const base64Image = await this.geminiService.generateImage(prompt);
+
+    const publicUrl = `data:image/png;base64,${base64Image}`;
+
+    await this.employeesService.updateAvatar(employeeId, publicUrl);
+
+    return {
+      isNew: true,
+      avatarUrl: publicUrl,
+    };
   }
 }

@@ -16,10 +16,12 @@ import {
   Resource,
   ResourceSchema,
 } from '../../modules/resources/schemas/resource.schema';
+import { EmployeesModule } from '../employees/employee.module';
 
 @Module({
   imports: [
     forwardRef(() => ResourcesModule),
+    forwardRef(() => EmployeesModule),
     CacheModule,
     SearchModule,
     MongooseModule.forFeature([
