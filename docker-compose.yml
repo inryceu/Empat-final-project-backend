@@ -39,6 +39,8 @@ services:
       - TYPESENSE_PORT=${TYPESENSE_PORT}
       - TYPESENSE_PROTOCOL=${TYPESENSE_PROTOCOL}
       - TYPESENSE_API_KEY=${TYPESENSE_API_KEY}
+
+      - POLLINATIONS_API_KEY=${POLLINATIONS_API_KEY}
     networks:
       - app-network
     depends_on:

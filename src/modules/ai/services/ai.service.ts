@@ -19,6 +19,7 @@ import {
   generateGenericWelcome,
 } from '../utils/chunks.utils';
 import { SearchService } from '../../search/search.service';
+import { ImageGeneratorService } from './image-generator.service';
 import { EmployeesService } from '../../employees/employee.service';
 
 @Injectable()
@@ -30,6 +31,7 @@ export class AiService {
     private cacheService: CacheService,
     private geminiService: GeminiService,
     private documentService: DocumentService,
+    private readonly imageGeneratorService: ImageGeneratorService,
     private readonly employeesService: EmployeesService,
   ) {}
 
@@ -189,28 +191,48 @@ export class AiService {
       employeeId,
     );
 
-    if (!employee) {
-      throw new NotFoundException('Співробітника не знайдено');
+    if (!employee) throw new NotFoundException('Співробітника не знайдено');
+    if (employee.avatarUrl)
+      return { isNew: false, avatarUrl: employee.avatarUrl };
+
+    const promptData = { ...employee };
+
+    const cyrillicRegex = /[а-яА-ЯіІїЇєЄґҐ]/;
+    const translateInstruction =
+      'Translate this word/phrase to English. Return ONLY the translation, nothing else.';
+
+    if (
+      promptData.favoriteAnimal &&
+      cyrillicRegex.test(promptData.favoriteAnimal)
+    ) {
+      try {
+        promptData.favoriteAnimal = await this.geminiService.generateContent(
+          promptData.favoriteAnimal,
+          translateInstruction,
+        );
+      } catch (e) {
+        console.warn('Помилка перекладу тварини');
+      }
     }
 
-    if (employee.avatarUrl) {
-      return {
-        isNew: false,
-        avatarUrl: employee.avatarUrl,
-      };
+    if (promptData.hobbies && cyrillicRegex.test(promptData.hobbies)) {
+      try {
+        promptData.hobbies = await this.geminiService.generateContent(
+          promptData.hobbies,
+          translateInstruction,
+        );
+      } catch (e) {
+        console.warn('Помилка перекладу хобі');
+      }
     }
 
-    const prompt = generateAvatarPrompt(employee);
+    const prompt = generateAvatarPrompt(promptData);
 
-    const base64Image = await this.geminiService.generateImage(prompt);
-
-    const publicUrl = `data:image/png;base64,${base64Image}`;
+    const publicUrl =
+      await this.imageGeneratorService.generateImageBase64(prompt);
 
     await this.employeesService.updateAvatar(employeeId, publicUrl);
 
-    return {
-      isNew: true,
-      avatarUrl: publicUrl,
-    };
+    return { isNew: true, avatarUrl: publicUrl };
   }
 }

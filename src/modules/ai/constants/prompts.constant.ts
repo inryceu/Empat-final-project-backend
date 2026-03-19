@@ -60,7 +60,7 @@ export const GENERATE_PERSONALIZED_WELCOME = (
   Relevant content:\n${context}
   Create a warm, personalized welcome message highlighting the most relevant information for this employee based on their profile.`;
 
-export const generateAvatarPrompt = (user: any) => {
+export const generateAvatarPrompt = (user: any): string => {
   const genderMap = {
     male: 'young man',
     female: 'young woman',
@@ -69,20 +69,23 @@ export const generateAvatarPrompt = (user: any) => {
   };
 
   const baseCharacter = user.favoriteAnimal
-    ? `an anthropomorphic cute ${user.favoriteAnimal}`
-    : `a ${genderMap[user.gender || 'preferNotToSay']}`;
+    ? `cute anthropomorphic ${user.favoriteAnimal}`
+    : `cute ${genderMap[user.gender || 'preferNotToSay']}`;
 
-  const hobbiesStr = user.hobbies
-    ? `They are interacting with items related to: ${user.hobbies}.`
-    : '';
   const departmentStr = user.department
-    ? `The setting reflects a ${user.department} workspace.`
-    : '';
+    ? `${user.department} workspace`
+    : 'office';
+  const hobbiesStr = user.hobbies ? user.hobbies : '';
 
-  return `A high-quality 3D rendered profile picture in modern Pixar or Disney animation style. 
-  The main character is ${baseCharacter}. 
-  ${departmentStr} 
-  ${hobbiesStr} 
-  They are looking directly at the camera with a friendly, welcoming smile. 
-  The background is a vibrant, solid corporate color, soft studio lighting, highly detailed, centered composition, perfect for a profile avatar.`;
+  const keywords = [
+    'pixar style 3d avatar',
+    baseCharacter,
+    departmentStr,
+    hobbiesStr,
+    'friendly smile',
+    'studio lighting',
+    'profile picture',
+  ].filter(Boolean);
+
+  return keywords.join(', ');
 };

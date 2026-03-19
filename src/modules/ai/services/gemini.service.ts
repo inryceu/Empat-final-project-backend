@@ -91,18 +91,26 @@ export class GeminiService implements OnModuleInit {
     const model = this.getRotatedModel({ model: 'gemini-2.5-flash-image' });
 
     try {
-      const result = await model.generateContent(`Generate an image based on this description: ${prompt}`);
+      const result = await model.generateContent(
+        `Generate an image based on this description: ${prompt}`,
+      );
       const response = await result.response;
 
       const imagePart = response.candidates?.[0]?.content?.parts?.find(
-        (part) => part.inlineData && part.inlineData.mimeType.startsWith('image/')
+        (part) =>
+          part.inlineData && part.inlineData.mimeType.startsWith('image/'),
       );
 
       if (imagePart?.inlineData) {
         return imagePart.inlineData.data;
       } else {
-        console.warn('Текстова відповідь моделі замість картинки:', response.text());
-        throw new Error('API не повернуло зображення. Перевірте промпт або ліміти ключа.');
+        console.warn(
+          'Текстова відповідь моделі замість картинки:',
+          response.text(),
+        );
+        throw new Error(
+          'API не повернуло зображення. Перевірте промпт або ліміти ключа.',
+        );
       }
     } catch (error: any) {
       console.error('Gemini Image Generation Error:', error);
