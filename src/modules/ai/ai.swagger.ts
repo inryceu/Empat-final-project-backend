@@ -76,11 +76,49 @@ export function ApiGenerateWelcome() {
     }),
     ApiResponse({
       status: 400,
-      description: 'Відсутній companyId або недостатньо даних компанії для генерації.',
+      description:
+        'Відсутній companyId або недостатньо даних компанії для генерації.',
     }),
     ApiResponse({
       status: 403,
       description: 'Тільки представники компанії можуть генерувати привітання.',
+    }),
+  );
+}
+
+export function ApiGetOrGenerateAvatar() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Отримати або згенерувати персоналізований аватар',
+      description:
+        'Перевіряє, чи є у співробітника аватар. Якщо є — повертає його. Якщо немає — генерує новий за допомогою ШІ на основі даних профілю (стать, хобі, улюблена тварина), зберігає в базу і повертає результат.',
+    }),
+    ApiResponse({
+      status: 200,
+      description: 'Аватар успішно отримано або згенеровано.',
+      schema: {
+        example: {
+          isNew: true,
+          avatarUrl: 'https://your-storage.com/avatars/avatar_123.png',
+        },
+      },
+    }),
+    ApiResponse({
+      status: 403,
+      description:
+        'Доступ заборонено. Тільки співробітники можуть генерувати аватари.',
+      schema: {
+        example: {
+          message:
+            'Тільки співробітники можуть мати персоналізовані AI-аватари',
+          error: 'Forbidden',
+          statusCode: 403,
+        },
+      },
+    }),
+    ApiResponse({
+      status: 404,
+      description: 'Профіль співробітника не знайдено в базі даних.',
     }),
   );
 }

@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { CompaniesService } from 'src/modules/companies/companies.service';
-import { EmployeesService } from 'src/modules/employees/employee.service';
+import { CompaniesService } from '../../companies/companies.service';
+import { EmployeesService } from '../../employees/employee.service';
 import { UnauthorizedException } from '@nestjs/common';
 
 @Injectable()

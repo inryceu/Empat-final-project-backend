@@ -86,11 +86,11 @@ export class ScraperService {
           process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium-browser',
         headless: true,
         args: [
-          '--no-sandbox', // КРИТИЧНО для Docker
-          '--disable-setuid-sandbox', // КРИТИЧНО для Docker
-          '--disable-dev-shm-usage', // Вирішує проблему з нестачею пам'яті (використовує /tmp замість /dev/shm)
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
           '--disable-gpu',
-          '--single-process', // Запускає все в одному процесі (краще для Alpine)
+          '--single-process',
           '--no-zygote',
         ],
       });

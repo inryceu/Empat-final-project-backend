@@ -16,10 +16,13 @@ import {
   Resource,
   ResourceSchema,
 } from '../../modules/resources/schemas/resource.schema';
+import { ImageGeneratorService } from './services/image-generator.service';
+import { EmployeesModule } from '../employees/employee.module';
 
 @Module({
   imports: [
     forwardRef(() => ResourcesModule),
+    forwardRef(() => EmployeesModule),
     CacheModule,
     SearchModule,
     MongooseModule.forFeature([
@@ -28,7 +31,13 @@ import {
     ]),
   ],
   controllers: [AiController],
-  providers: [AiService, GeminiService, DocumentService, ScraperService],
+  providers: [
+    AiService,
+    GeminiService,
+    DocumentService,
+    ScraperService,
+    ImageGeneratorService,
+  ],
   exports: [AiService, DocumentService, ScraperService],
 })
 export class AiModule {}

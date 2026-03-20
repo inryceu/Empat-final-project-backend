@@ -36,6 +36,9 @@ export class Employee {
 
   @Prop({ type: Types.ObjectId, ref: 'Company', required: true })
   companyId: mongoose.Schema.Types.ObjectId | string;
+
+  @Prop({ required: false })
+  avatarUrl?: string;
 }
 
 export const EmployeeSchema = SchemaFactory.createForClass(Employee);

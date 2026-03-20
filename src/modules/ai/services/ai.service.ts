@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { CacheService } from '../../cache/services/cache.service';
@@ -8,6 +8,7 @@ import {
   GENERATE_PERSONALIZED_WELCOME,
   SYSTEM_PROMPT,
   WELCOME_SYSTEM_PROMPT,
+  generateAvatarPrompt,
 } from '../constants/prompts.constant';
 import { ResourceChunk } from '../schemas/resource-chunk.schema';
 import { Resource } from '../../resources/schemas/resource.schema';
@@ -18,6 +19,8 @@ import {
   generateGenericWelcome,
 } from '../utils/chunks.utils';
 import { SearchService } from '../../search/search.service';
+import { ImageGeneratorService } from './image-generator.service';
+import { EmployeesService } from '../../employees/employee.service';
 
 @Injectable()
 export class AiService {
@@ -28,6 +31,8 @@ export class AiService {
     private cacheService: CacheService,
     private geminiService: GeminiService,
     private documentService: DocumentService,
+    private readonly imageGeneratorService: ImageGeneratorService,
+    private readonly employeesService: EmployeesService,
   ) {}
 
   async getStatus() {
@@ -178,5 +183,56 @@ export class AiService {
     return Array.from(allChunks.values())
       .sort((a, b) => a.score - b.score)
       .slice(0, limit);
+  }
+
+  async getOrGenerateAvatar(companyId: string, employeeId: string) {
+    const employee = await this.employeesService.findById(
+      companyId,
+      employeeId,
+    );
+
+    if (!employee) throw new NotFoundException('Співробітника не знайдено');
+    if (employee.avatarUrl)
+      return { isNew: false, avatarUrl: employee.avatarUrl };
+
+    const promptData = { ...employee };
+
+    const cyrillicRegex = /[а-яА-ЯіІїЇєЄґҐ]/;
+    const translateInstruction =
+      'Translate this word/phrase to English. Return ONLY the translation, nothing else.';
+
+    if (
+      promptData.favoriteAnimal &&
+      cyrillicRegex.test(promptData.favoriteAnimal)
+    ) {
+      try {
+        promptData.favoriteAnimal = await this.geminiService.generateContent(
+          promptData.favoriteAnimal,
+          translateInstruction,
+        );
+      } catch (e) {
+        console.warn('Помилка перекладу тварини');
+      }
+    }
+
+    if (promptData.hobbies && cyrillicRegex.test(promptData.hobbies)) {
+      try {
+        promptData.hobbies = await this.geminiService.generateContent(
+          promptData.hobbies,
+          translateInstruction,
+        );
+      } catch (e) {
+        console.warn('Помилка перекладу хобі');
+      }
+    }
+
+    const prompt = generateAvatarPrompt(promptData);
+
+    const publicUrl =
+      await this.imageGeneratorService.generateImageBase64(prompt);
+
+    await this.employeesService.updateAvatar(employeeId, publicUrl);
+
+    return { isNew: true, avatarUrl: publicUrl };
   }
 }
