@@ -72,10 +72,9 @@ export const generateAvatarPrompt = (user: any): string => {
     ? `cute anthropomorphic ${user.favoriteAnimal}`
     : `cute ${genderMap[user.gender || 'preferNotToSay']}`;
 
-  const departmentStr = user.department
-    ? `${user.department} workspace`
-    : 'office';
-  const hobbiesStr = user.hobbies ? user.hobbies : '';
+  const departmentStr = `${user.department} workspace`
+
+  const hobbiesStr = user.hobbies ? `with ${user.hobbies} attributes` : '';
 
   const keywords = [
     'pixar style 3d avatar',
