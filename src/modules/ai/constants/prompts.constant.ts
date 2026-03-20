@@ -59,3 +59,32 @@ export const GENERATE_PERSONALIZED_WELCOME = (
   Available resources: \n${resourceTitles}
   Relevant content:\n${context}
   Create a warm, personalized welcome message highlighting the most relevant information for this employee based on their profile.`;
+
+export const generateAvatarPrompt = (user: any): string => {
+  const genderMap = {
+    male: 'young man',
+    female: 'young woman',
+    other: 'person',
+    preferNotToSay: 'character',
+  };
+
+  const baseCharacter = user.favoriteAnimal
+    ? `cute anthropomorphic ${user.favoriteAnimal}`
+    : `cute ${genderMap[user.gender || 'preferNotToSay']}`;
+
+  const departmentStr = `${user.department} workspace`
+
+  const hobbiesStr = user.hobbies ? `with ${user.hobbies} attributes` : '';
+
+  const keywords = [
+    'pixar style 3d avatar',
+    baseCharacter,
+    departmentStr,
+    hobbiesStr,
+    'friendly smile',
+    'studio lighting',
+    'profile picture',
+  ].filter(Boolean);
+
+  return keywords.join(', ');
+};
