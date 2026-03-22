@@ -20,6 +20,7 @@ import {
   ApiChat,
   ApiGenerateWelcome,
   ApiGetOrGenerateAvatar,
+  ApiGetChatHistory
 } from './ai.swagger';
 
 @ApiTags('AI - RAG System')
@@ -86,6 +87,7 @@ export class AiController {
 
   @Get('history')
   @HttpCode(HttpStatus.OK)
+  @ApiGetChatHistory()
   async getChatHistory(@Req() req) {
     const userId = req.user.id;
 

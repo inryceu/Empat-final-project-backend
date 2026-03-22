@@ -122,3 +122,40 @@ export function ApiGetOrGenerateAvatar() {
     }),
   );
 }
+
+export function ApiGetChatHistory() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Отримати історію чату користувача',
+      description:
+        'Завантажує всю історію спілкування поточного користувача з RAG-асистентом. Повертає масив повідомлень у хронологічному порядку. Першим повідомленням зазвичай є закешоване привітання.',
+    }),
+    ApiResponse({
+      status: 200,
+      description: 'Історія чату успішно отримана.',
+      schema: {
+        example: [
+          {
+            role: 'assistant',
+            content: 'Ласкаво просимо! Я твій ШІ-помічник. Чим можу допомогти сьогодні?',
+            createdAt: '2026-03-22T10:00:00.000Z',
+          },
+          {
+            role: 'employee',
+            content: 'Як оформити лікарняний?',
+            createdAt: '2026-03-22T10:05:00.000Z',
+          },
+          {
+            role: 'assistant',
+            content: 'Для оформлення лікарняного необхідно попередити свого ліда до 10:00...',
+            createdAt: '2026-03-22T10:05:05.000Z',
+          }
+        ],
+      },
+    }),
+    ApiResponse({
+      status: 401,
+      description: 'Неавторизований доступ. Потрібен JWT токен.',
+    }),
+  );
+}
