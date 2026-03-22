@@ -12,6 +12,7 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { AiService } from './services/ai.service';
+import { ChatService } from '../chat/chat.service';
 import { ChatRequestDto } from './dto/chat-request.dto';
 
 import {
@@ -19,6 +20,7 @@ import {
   ApiChat,
   ApiGenerateWelcome,
   ApiGetOrGenerateAvatar,
+  ApiGetChatHistory,
 } from './ai.swagger';
 
 @ApiTags('AI - RAG System')
@@ -26,7 +28,10 @@ import {
 @Controller({ path: 'ai', version: '1' })
 @UseGuards(AuthGuard('jwt'))
 export class AiController {
-  constructor(private readonly aiService: AiService) {}
+  constructor(
+    private readonly aiService: AiService,
+    private readonly chatService: ChatService,
+  ) {}
 
   @Get('status')
   @ApiGetAiStatus()
@@ -71,8 +76,6 @@ export class AiController {
   async getOrGenerateAvatar(@Req() req) {
     const user = req.user as any;
 
-    console.log(req.user);
-
     if (user.userType === 'company') {
       throw new ForbiddenException(
         'Тільки співробітники можуть мати персоналізовані AI-аватари',
@@ -80,5 +83,14 @@ export class AiController {
     }
 
     return this.aiService.getOrGenerateAvatar(user.companyId, user.id);
+  }
+
+  @Get('history')
+  @HttpCode(HttpStatus.OK)
+  @ApiGetChatHistory()
+  async getChatHistory(@Req() req) {
+    const userId = req.user.id;
+
+    return this.chatService.getHistory(userId);
   }
 }

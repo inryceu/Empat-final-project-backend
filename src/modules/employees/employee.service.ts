@@ -42,8 +42,16 @@ export class EmployeesService {
       .exec();
 
     return [
-      ...employees.map((e) => ({ ...e, status: 'active' })),
-      ...invites.map((i) => ({ ...i, status: 'pending' })),
+      ...employees.map(({ _id, ...e }) => ({
+        ...e,
+        id: _id.toString(),
+        status: 'active',
+      })),
+      ...invites.map(({ _id, ...i }) => ({
+        ...i,
+        id: _id.toString(),
+        status: 'pending',
+      })),
     ];
   }
 

@@ -40,7 +40,7 @@ services:
       - TYPESENSE_PROTOCOL=${TYPESENSE_PROTOCOL}
       - TYPESENSE_API_KEY=${TYPESENSE_API_KEY}
 
-      - POLLINATIONS_API_KEY=${POLLINATIONS_API_KEY}
+      - POLLINATIONS_API_KEYS=${POLLINATIONS_API_KEYS}
     networks:
       - app-network
     depends_on:
