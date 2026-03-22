@@ -18,7 +18,6 @@ import { ChatRequestDto } from './dto/chat-request.dto';
 import {
   ApiGetAiStatus,
   ApiChat,
-  ApiGenerateWelcome,
   ApiGetOrGenerateAvatar,
   ApiGetChatHistory,
 } from './ai.swagger';
@@ -51,25 +50,6 @@ export class AiController {
     return this.aiService.generateResponse(body.query, companyId, employeeId);
   }
 
-  @Post('welcome')
-  @HttpCode(HttpStatus.OK)
-  @ApiGenerateWelcome()
-  async generateWelcome(@Req() req) {
-    const user = req.user as any;
-    const isCompany = user.userType === 'company';
-
-    const data = {
-      companyId: isCompany ? user.id : user.companyId,
-
-      employeeId: isCompany ? null : user.id,
-
-      employeeName: user.name,
-      department: user.department,
-    };
-
-    return this.aiService.generateWelcomeMessage(data);
-  }
-
   @Post('avatar')
   @HttpCode(HttpStatus.OK)
   @ApiGetOrGenerateAvatar()
@@ -89,8 +69,25 @@ export class AiController {
   @HttpCode(HttpStatus.OK)
   @ApiGetChatHistory()
   async getChatHistory(@Req() req) {
-    const userId = req.user.id;
+    const user = req.user as any;
+    const userId = user.id;
 
-    return this.chatService.getHistory(userId);
+    let history = await this.chatService.getHistory(userId);
+
+    if (history.length === 0) {
+      const isCompany = user.userType === 'company';
+      const data = {
+        companyId: isCompany ? user.id : user.companyId,
+        employeeId: isCompany ? null : user.id,
+        employeeName: user.name,
+        department: user.department,
+      };
+
+      await this.aiService.generateWelcomeMessage(data);
+
+      history = await this.chatService.getHistory(userId);
+    }
+
+    return history;
   }
 }
