@@ -2,7 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
 export class Message {
-  @Prop({ required: true, enum: ['user', 'assistant'] })
+  @Prop({ required: true, enum: ['employee', 'assistant'] })
   role: string;
 
   @Prop({ required: true })

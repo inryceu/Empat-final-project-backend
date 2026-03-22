@@ -27,7 +27,10 @@ import {
 @Controller({ path: 'ai', version: '1' })
 @UseGuards(AuthGuard('jwt'))
 export class AiController {
-  constructor(private readonly aiService: AiService, private readonly chatService: ChatService) {}
+  constructor(
+    private readonly aiService: AiService,
+    private readonly chatService: ChatService,
+  ) {}
 
   @Get('status')
   @ApiGetAiStatus()
@@ -84,8 +87,8 @@ export class AiController {
   @Get('history')
   @HttpCode(HttpStatus.OK)
   async getChatHistory(@Req() req) {
-    const userId = req.user.id; 
-    
+    const userId = req.user.id;
+
     return this.chatService.getHistory(userId);
   }
 }

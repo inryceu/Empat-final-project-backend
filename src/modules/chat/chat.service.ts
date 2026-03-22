@@ -19,13 +19,13 @@ export class ChatService {
         $push: {
           messages: {
             $each: [
-              { role: 'user', content: userMsg, createdAt: new Date() },
+              { role: 'employee', content: userMsg, createdAt: new Date() },
               { role: 'assistant', content: aiMsg, createdAt: new Date() },
             ],
           },
         },
       },
-      { upsert: true }
+      { upsert: true },
     );
   }
 
@@ -44,11 +44,11 @@ export class ChatService {
         $push: {
           messages: {
             $each: [{ role: 'assistant', content, createdAt: new Date() }],
-            $position: 0, 
+            $position: 0,
           },
         },
       },
-      { upsert: true }
+      { upsert: true },
     );
   }
 }

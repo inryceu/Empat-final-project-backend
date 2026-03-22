@@ -21,7 +21,7 @@ import {
 import { SearchService } from '../../search/search.service';
 import { ImageGeneratorService } from './image-generator.service';
 import { EmployeesService } from '../../employees/employee.service';
-import { ChatService } from 'src/modules/chat/chat.service';
+import { ChatService } from '../../chat/chat.service';
 
 @Injectable()
 export class AiService {
@@ -83,7 +83,7 @@ export class AiService {
     employeeId: string,
   ): Promise<{ content: string; sources: any[] }> {
     this.cacheService.trackQuery(query, companyId).catch(console.error);
-    
+
     const cachedResponse = await this.cacheService.getCachedResponse(
       query,
       companyId,
@@ -92,12 +92,13 @@ export class AiService {
       this.chatService
         .saveMessagePair(employeeId, query, cachedResponse.content)
         .catch((err) => console.error('Помилка збереження чату:', err));
-      
+
       return cachedResponse;
     }
 
     const expandedQueries = expandQuery(query);
-    const queryEmbeddings = await this.geminiService.generateEmbeddings(expandedQueries);
+    const queryEmbeddings =
+      await this.geminiService.generateEmbeddings(expandedQueries);
     const relevantChunks = await this.aggregateChunks(
       queryEmbeddings,
       companyId,
@@ -107,19 +108,17 @@ export class AiService {
 
     if (relevantChunks.length === 0) {
       const emptyResult = await handleEmptyResults(this.chunkModel, companyId);
-      
+
       this.chatService
         .saveMessagePair(employeeId, query, emptyResult.content)
         .catch((err) => console.error('Помилка збереження чату:', err));
-        
+
       return emptyResult;
     }
 
-    const { context, resourceTitles, sourcesMap } = await buildContextFromChunks(
-      relevantChunks,
-      this.resourceModel,
-    );
-    
+    const { context, resourceTitles, sourcesMap } =
+      await buildContextFromChunks(relevantChunks, this.resourceModel);
+
     const userPrompt = `I have gathered information from ${sourcesMap.size} relevant resource(s):\n${resourceTitles}\n\nHere is the retrieved content:\n\n${context}\n\nUser's question: "${query}"\n\nPlease analyze ALL the provided content and give a comprehensive, helpful answer. Focus on main themes, synthesize information, ignore UI elements, and be conversational.`;
 
     const content = await this.geminiService.generateContent(
@@ -155,7 +154,9 @@ export class AiService {
     let query = `Welcome! Give me a personalized introduction to the company. I'm ${data.employeeName || 'a new employee'}`;
     if (data.department) query += ` in the ${data.department} department.`;
 
-    const queryEmbeddings = await this.geminiService.generateEmbeddings([query]);
+    const queryEmbeddings = await this.geminiService.generateEmbeddings([
+      query,
+    ]);
     const relevantChunks = await this.aggregateChunks(
       queryEmbeddings,
       data.companyId,
@@ -165,16 +166,14 @@ export class AiService {
 
     if (relevantChunks.length === 0) {
       const genericContent = generateGenericWelcome(data);
-      
+
       await this.chatService.saveWelcomeMessage(userId, genericContent);
       return { content: genericContent, sources: [] };
     }
 
-    const { context, resourceTitles, sourcesMap } = await buildContextFromChunks(
-      relevantChunks,
-      this.resourceModel,
-    );
-    
+    const { context, resourceTitles, sourcesMap } =
+      await buildContextFromChunks(relevantChunks, this.resourceModel);
+
     const userPrompt = GENERATE_PERSONALIZED_WELCOME(
       data.employeeName,
       data.department,
