@@ -71,8 +71,6 @@ export class AiController {
   async getOrGenerateAvatar(@Req() req) {
     const user = req.user as any;
 
-    console.log(req.user);
-
     if (user.userType === 'company') {
       throw new ForbiddenException(
         'Тільки співробітники можуть мати персоналізовані AI-аватари',
