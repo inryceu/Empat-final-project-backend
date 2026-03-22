@@ -5,6 +5,7 @@ import { AiService } from './services/ai.service';
 import { GeminiService } from './services/gemini.service';
 import { DocumentService } from './services/document.service';
 import { ScraperService } from './services/scraper.service';
+import { ChatService } from '../chat/chat.service'
 import { ResourcesModule } from '../resources/resources.module';
 import { CacheModule } from '../cache/redis.module';
 import { SearchModule } from '../search/search.module';
@@ -37,6 +38,7 @@ import { EmployeesModule } from '../employees/employee.module';
     DocumentService,
     ScraperService,
     ImageGeneratorService,
+    ChatService
   ],
   exports: [AiService, DocumentService, ScraperService],
 })

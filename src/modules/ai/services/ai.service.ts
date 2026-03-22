@@ -21,6 +21,7 @@ import {
 import { SearchService } from '../../search/search.service';
 import { ImageGeneratorService } from './image-generator.service';
 import { EmployeesService } from '../../employees/employee.service';
+import { ChatService } from 'src/modules/chat/chat.service';
 
 @Injectable()
 export class AiService {
@@ -33,6 +34,7 @@ export class AiService {
     private documentService: DocumentService,
     private readonly imageGeneratorService: ImageGeneratorService,
     private readonly employeesService: EmployeesService,
+    private readonly chatService: ChatService,
   ) {}
 
   async getStatus() {
@@ -81,15 +83,21 @@ export class AiService {
     employeeId: string,
   ): Promise<{ content: string; sources: any[] }> {
     this.cacheService.trackQuery(query, companyId).catch(console.error);
+    
     const cachedResponse = await this.cacheService.getCachedResponse(
       query,
       companyId,
     );
-    if (cachedResponse) return cachedResponse;
+    if (cachedResponse) {
+      this.chatService
+        .saveMessagePair(employeeId, query, cachedResponse.content)
+        .catch((err) => console.error('Помилка збереження чату:', err));
+      
+      return cachedResponse;
+    }
 
     const expandedQueries = expandQuery(query);
-    const queryEmbeddings =
-      await this.geminiService.generateEmbeddings(expandedQueries);
+    const queryEmbeddings = await this.geminiService.generateEmbeddings(expandedQueries);
     const relevantChunks = await this.aggregateChunks(
       queryEmbeddings,
       companyId,
@@ -98,11 +106,20 @@ export class AiService {
     );
 
     if (relevantChunks.length === 0) {
-      return handleEmptyResults(this.chunkModel, companyId);
+      const emptyResult = await handleEmptyResults(this.chunkModel, companyId);
+      
+      this.chatService
+        .saveMessagePair(employeeId, query, emptyResult.content)
+        .catch((err) => console.error('Помилка збереження чату:', err));
+        
+      return emptyResult;
     }
 
-    const { context, resourceTitles, sourcesMap } =
-      await buildContextFromChunks(relevantChunks, this.resourceModel);
+    const { context, resourceTitles, sourcesMap } = await buildContextFromChunks(
+      relevantChunks,
+      this.resourceModel,
+    );
+    
     const userPrompt = `I have gathered information from ${sourcesMap.size} relevant resource(s):\n${resourceTitles}\n\nHere is the retrieved content:\n\n${context}\n\nUser's question: "${query}"\n\nPlease analyze ALL the provided content and give a comprehensive, helpful answer. Focus on main themes, synthesize information, ignore UI elements, and be conversational.`;
 
     const content = await this.geminiService.generateContent(
@@ -114,6 +131,11 @@ export class AiService {
     this.cacheService
       .cacheResponse(query, companyId, result)
       .catch(console.error);
+
+    this.chatService
+      .saveMessagePair(employeeId, query, content)
+      .catch((err) => console.error('Помилка збереження чату:', err));
+
     return result;
   }
 
@@ -123,12 +145,17 @@ export class AiService {
     employeeName?: string;
     department?: string;
   }): Promise<{ content: string; sources: any[] }> {
+    const userId = data.employeeId || data.companyId;
+
+    const cachedWelcome = await this.chatService.getWelcomeMessage(userId);
+    if (cachedWelcome) {
+      return { content: cachedWelcome, sources: [] };
+    }
+
     let query = `Welcome! Give me a personalized introduction to the company. I'm ${data.employeeName || 'a new employee'}`;
     if (data.department) query += ` in the ${data.department} department.`;
 
-    const queryEmbeddings = await this.geminiService.generateEmbeddings([
-      query,
-    ]);
+    const queryEmbeddings = await this.geminiService.generateEmbeddings([query]);
     const relevantChunks = await this.aggregateChunks(
       queryEmbeddings,
       data.companyId,
@@ -137,11 +164,17 @@ export class AiService {
     );
 
     if (relevantChunks.length === 0) {
-      return { content: generateGenericWelcome(data), sources: [] };
+      const genericContent = generateGenericWelcome(data);
+      
+      await this.chatService.saveWelcomeMessage(userId, genericContent);
+      return { content: genericContent, sources: [] };
     }
 
-    const { context, resourceTitles, sourcesMap } =
-      await buildContextFromChunks(relevantChunks, this.resourceModel);
+    const { context, resourceTitles, sourcesMap } = await buildContextFromChunks(
+      relevantChunks,
+      this.resourceModel,
+    );
+    
     const userPrompt = GENERATE_PERSONALIZED_WELCOME(
       data.employeeName,
       data.department,
@@ -153,6 +186,9 @@ export class AiService {
       userPrompt,
       WELCOME_SYSTEM_PROMPT,
     );
+
+    await this.chatService.saveWelcomeMessage(userId, content);
+
     return { content, sources: Array.from(sourcesMap.values()) };
   }
 
