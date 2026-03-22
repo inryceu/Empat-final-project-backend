@@ -72,7 +72,7 @@ export const generateAvatarPrompt = (user: any): string => {
     ? `cute anthropomorphic ${user.favoriteAnimal}`
     : `cute ${genderMap[user.gender || 'preferNotToSay']}`;
 
-  const departmentStr = `${user.department} workspace`
+  const departmentStr = `${user.department} workspace`;
 
   const hobbiesStr = user.hobbies ? `with ${user.hobbies} attributes` : '';
 
