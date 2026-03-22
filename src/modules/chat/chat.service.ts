@@ -25,7 +25,12 @@ export class ChatService {
           messages: {
             $each: [
               { role: 'employee', content: userMsg, createdAt: new Date() },
-              { role: 'assistant', content: aiMsg, sources, createdAt: new Date() },
+              {
+                role: 'assistant',
+                content: aiMsg,
+                sources,
+                createdAt: new Date(),
+              },
             ],
           },
         },
@@ -48,7 +53,14 @@ export class ChatService {
       {
         $push: {
           messages: {
-            $each: [{ role: 'assistant', content, sources: [], createdAt: new Date() }],
+            $each: [
+              {
+                role: 'assistant',
+                content,
+                sources: [],
+                createdAt: new Date(),
+              },
+            ],
             $position: 0,
           },
         },

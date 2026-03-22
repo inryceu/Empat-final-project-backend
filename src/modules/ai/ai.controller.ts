@@ -20,7 +20,7 @@ import {
   ApiChat,
   ApiGenerateWelcome,
   ApiGetOrGenerateAvatar,
-  ApiGetChatHistory
+  ApiGetChatHistory,
 } from './ai.swagger';
 
 @ApiTags('AI - RAG System')
