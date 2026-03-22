@@ -57,35 +57,6 @@ export function ApiChat() {
   );
 }
 
-export function ApiGenerateWelcome() {
-  return applyDecorators(
-    ApiOperation({
-      summary: 'Згенерувати привітання компанії',
-      description:
-        'Генерує привітне повідомлення для нових співробітників за допомогою ШІ. Дані для генерації (назва компанії, галузь тощо) беруться автоматично з профілю компанії поточного користувача.',
-    }),
-    ApiResponse({
-      status: 200,
-      description: 'Згенероване привітання у текстовому форматі.',
-      schema: {
-        example: {
-          message:
-            'Ласкаво просимо до Tech Corp! Ми раді вітати тебе в нашій команді. У нас попереду багато цікавих проєктів, і ми впевнені, що твій досвід допоможе нам досягти нових висот...',
-        },
-      },
-    }),
-    ApiResponse({
-      status: 400,
-      description:
-        'Відсутній companyId або недостатньо даних компанії для генерації.',
-    }),
-    ApiResponse({
-      status: 403,
-      description: 'Тільки представники компанії можуть генерувати привітання.',
-    }),
-  );
-}
-
 export function ApiGetOrGenerateAvatar() {
   return applyDecorators(
     ApiOperation({
