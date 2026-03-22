@@ -12,7 +12,12 @@ export class ChatService {
     return chat ? chat.messages : [];
   }
 
-  async saveMessagePair(userId: string, userMsg: string, aiMsg: string) {
+  async saveMessagePair(
+    userId: string,
+    userMsg: string,
+    aiMsg: string,
+    sources: any[] = [],
+  ) {
     await this.chatModel.updateOne(
       { userId },
       {
@@ -20,7 +25,7 @@ export class ChatService {
           messages: {
             $each: [
               { role: 'employee', content: userMsg, createdAt: new Date() },
-              { role: 'assistant', content: aiMsg, createdAt: new Date() },
+              { role: 'assistant', content: aiMsg, sources, createdAt: new Date() },
             ],
           },
         },
@@ -43,7 +48,7 @@ export class ChatService {
       {
         $push: {
           messages: {
-            $each: [{ role: 'assistant', content, createdAt: new Date() }],
+            $each: [{ role: 'assistant', content, sources: [], createdAt: new Date() }],
             $position: 0,
           },
         },

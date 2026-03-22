@@ -8,6 +8,9 @@ export class Message {
   @Prop({ required: true })
   content: string;
 
+  @Prop({ type: Array, default: [] })
+  sources?: any[];
+
   @Prop({ default: Date.now })
   createdAt: Date;
 }

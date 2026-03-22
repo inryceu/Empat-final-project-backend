@@ -77,7 +77,7 @@ export class AiService {
     return embeddings[0] || [];
   }
 
-  async generateResponse(
+async generateResponse(
     query: string,
     companyId: string,
     employeeId: string,
@@ -90,7 +90,7 @@ export class AiService {
     );
     if (cachedResponse) {
       this.chatService
-        .saveMessagePair(employeeId, query, cachedResponse.content)
+        .saveMessagePair(employeeId, query, cachedResponse.content, cachedResponse.sources)
         .catch((err) => console.error('Помилка збереження чату:', err));
 
       return cachedResponse;
@@ -110,7 +110,7 @@ export class AiService {
       const emptyResult = await handleEmptyResults(this.chunkModel, companyId);
 
       this.chatService
-        .saveMessagePair(employeeId, query, emptyResult.content)
+        .saveMessagePair(employeeId, query, emptyResult.content, emptyResult.sources)
         .catch((err) => console.error('Помилка збереження чату:', err));
 
       return emptyResult;
@@ -125,6 +125,7 @@ export class AiService {
       userPrompt,
       SYSTEM_PROMPT,
     );
+    
     const result = { content, sources: Array.from(sourcesMap.values()) };
 
     this.cacheService
@@ -132,7 +133,7 @@ export class AiService {
       .catch(console.error);
 
     this.chatService
-      .saveMessagePair(employeeId, query, content)
+      .saveMessagePair(employeeId, query, content, result.sources)
       .catch((err) => console.error('Помилка збереження чату:', err));
 
     return result;
