@@ -19,6 +19,7 @@ import {
   ApiGetAiStatus,
   ApiChat,
   ApiGetOrGenerateAvatar,
+  ApiGetOrGenerateAvatarUrl,
   ApiGetChatHistory,
 } from './ai.swagger';
 
@@ -67,13 +68,13 @@ export class AiController {
 
   @Post('avatar-url')
   @HttpCode(HttpStatus.OK)
-  // @ApiGetOrGenerateAvatarUrl()
+  @ApiGetOrGenerateAvatarUrl()
   async getOrGenerateAvatarUrl(@Req() req) {
     const user = req.user as any;
     if (user.userType === 'company') {
       throw new ForbiddenException('Тільки співробітники можуть мати персоналізовані AI-аватари');
     }
-    
+
     return this.aiService.getOrGenerateAvatarUrl(user.companyId, user.id);
   }
 
