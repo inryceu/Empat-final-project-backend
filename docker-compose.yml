@@ -41,6 +41,8 @@ services:
       - TYPESENSE_API_KEY=${TYPESENSE_API_KEY}
 
       - POLLINATIONS_API_KEYS=${POLLINATIONS_API_KEYS}
+
+      - APP_URL=${APP_URL}
     networks:
       - app-network
     depends_on:
