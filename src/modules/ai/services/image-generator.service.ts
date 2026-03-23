@@ -47,31 +47,40 @@ export class ImageGeneratorService implements OnModuleInit {
     return this.apiKeys[this.currentKeyIndex];
   }
 
+  private async fetchImageData(
+    prompt: string,
+  ): Promise<{ buffer: Buffer; mimeType: string }> {
+    const safePrompt = prompt
+      .replace(/[.,:;?!]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    const encodedPrompt = encodeURIComponent(safePrompt);
+    const url = `https://gen.pollinations.ai/image/${encodedPrompt}?model=flux`;
+    const apiKey = this.getRotatedKey();
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: { Authorization: `Bearer ${apiKey}` },
+    });
+
+    if (!response.ok) {
+      throw new InternalServerErrorException(
+        `Сервер повернув помилку: ${response.status}`,
+      );
+    }
+
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    const mimeType = response.headers.get('content-type') || 'image/jpeg';
+
+    return { buffer, mimeType };
+  }
+
   async generateImageBase64(prompt: string): Promise<string> {
     try {
-      const safePrompt = prompt
-        .replace(/[.,:;?!]/g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim();
-      const encodedPrompt = encodeURIComponent(safePrompt);
-      const url = `https://gen.pollinations.ai/image/${encodedPrompt}?model=flux`;
-      const apiKey = this.getRotatedKey();
+      const { buffer, mimeType } = await this.fetchImageData(prompt);
 
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: { Authorization: `Bearer ${apiKey}` },
-      });
-
-      if (!response.ok) {
-        throw new InternalServerErrorException(
-          `Сервер повернув помилку: ${response.status}`,
-        );
-      }
-
-      const arrayBuffer = await response.arrayBuffer();
-      const base64Content = Buffer.from(arrayBuffer).toString('base64');
-      const mimeType = response.headers.get('content-type') || 'image/jpeg';
-
+      const base64Content = buffer.toString('base64');
       return `data:${mimeType};base64,${base64Content}`;
     } catch (error: any) {
       throw new InternalServerErrorException(
@@ -85,39 +94,15 @@ export class ImageGeneratorService implements OnModuleInit {
     employeeId: string,
   ): Promise<string> {
     try {
-      const safePrompt = prompt
-        .replace(/[.,:;?!]/g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim();
-      const encodedPrompt = encodeURIComponent(safePrompt);
-      const url = `https://gen.pollinations.ai/image/${encodedPrompt}?model=flux`;
-      const apiKey = this.getRotatedKey();
+      const { buffer, mimeType } = await this.fetchImageData(prompt);
 
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: { Authorization: `Bearer ${apiKey}` },
-      });
-
-      if (!response.ok) {
-        throw new InternalServerErrorException(
-          `Сервер повернув помилку: ${response.status}`,
-        );
-      }
-
-      const arrayBuffer = await response.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
-
-      const mimeType = response.headers.get('content-type') || 'image/jpeg';
       const extension = mimeType === 'image/png' ? '.png' : '.jpg';
-
       const fileName = `avatar_${employeeId}_${Date.now()}${extension}`;
       const filePath = path.join(this.UPLOADS_DIR, fileName);
 
       fs.writeFileSync(filePath, buffer);
 
-      const publicUrl = `${process.env.APP_URL || 'http://localhost:3000'}/public/avatars/${fileName}`;
-
-      return publicUrl;
+      return `${process.env.APP_URL || 'http://localhost:3000'}/public/avatars/${fileName}`;
     } catch (error: any) {
       throw new InternalServerErrorException(
         `Не вдалося згенерувати зображення: ${error.message}`,

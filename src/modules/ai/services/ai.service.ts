@@ -231,26 +231,8 @@ export class AiService {
       .slice(0, limit);
   }
 
-  async getOrGenerateAvatar(companyId: string, employeeId: string) {
-    const employee = await this.employeesService.findById(
-      companyId,
-      employeeId,
-    );
-    if (!employee) throw new NotFoundException('Співробітника не знайдено');
-
-    if (employee.avatarUrl) {
-      if (employee.avatarUrl.startsWith('data:image')) {
-        return { isNew: false, avatarUrl: employee.avatarUrl };
-      } else {
-        const base64 = this.imageGeneratorService.convertFileToBase64(
-          employee.avatarUrl,
-        );
-        return { isNew: false, avatarUrl: base64 };
-      }
-    }
-
+  private async buildAvatarPrompt(employee: any): Promise<string> {
     const promptData = { ...employee };
-
     const cyrillicRegex = /[а-яА-ЯіІїЇєЄґҐ]/;
     const translateInstruction =
       'Translate this word/phrase to English. Return ONLY the translation, nothing else.';
@@ -280,7 +262,28 @@ export class AiService {
       }
     }
 
-    const prompt = generateAvatarPrompt(promptData);
+    return generateAvatarPrompt(promptData);
+  }
+
+  async getOrGenerateAvatar(companyId: string, employeeId: string) {
+    const employee = await this.employeesService.findById(
+      companyId,
+      employeeId,
+    );
+    if (!employee) throw new NotFoundException('Співробітника не знайдено');
+
+    if (employee.avatarUrl) {
+      if (employee.avatarUrl.startsWith('data:image')) {
+        return { isNew: false, avatarUrl: employee.avatarUrl };
+      } else {
+        const base64 = this.imageGeneratorService.convertFileToBase64(
+          employee.avatarUrl,
+        );
+        return { isNew: false, avatarUrl: base64 };
+      }
+    }
+
+    const prompt = await this.buildAvatarPrompt(employee);
 
     const publicUrl =
       await this.imageGeneratorService.generateImageBase64(prompt);
@@ -313,44 +316,15 @@ export class AiService {
       }
     }
 
-    const promptData = { ...employee };
-
-    const cyrillicRegex = /[а-яА-ЯіІїЇєЄґҐ]/;
-    const translateInstruction =
-      'Translate this word/phrase to English. Return ONLY the translation, nothing else.';
-
-    if (
-      promptData.favoriteAnimal &&
-      cyrillicRegex.test(promptData.favoriteAnimal)
-    ) {
-      try {
-        promptData.favoriteAnimal = await this.geminiService.generateContent(
-          promptData.favoriteAnimal,
-          translateInstruction,
-        );
-      } catch (e) {
-        console.warn('Помилка перекладу тварини');
-      }
-    }
-
-    if (promptData.hobbies && cyrillicRegex.test(promptData.hobbies)) {
-      try {
-        promptData.hobbies = await this.geminiService.generateContent(
-          promptData.hobbies,
-          translateInstruction,
-        );
-      } catch (e) {
-        console.warn('Помилка перекладу хобі');
-      }
-    }
-
-    const prompt = generateAvatarPrompt(promptData);
+    const prompt = await this.buildAvatarPrompt(employee);
 
     const publicUrl = await this.imageGeneratorService.generateAndSaveImage(
       prompt,
       employeeId,
     );
+
     await this.employeesService.updateAvatar(employeeId, publicUrl);
+
     return { isNew: true, avatarUrl: publicUrl };
   }
 }
