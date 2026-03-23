@@ -19,8 +19,11 @@ import { CompaniesModule } from './modules/companies/companies.module';
     EmployeesModule,
     CompaniesModule,
     ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'public'),
-      serveRoot: '/public', 
+      rootPath: join(process.cwd(), 'public'),
+      serveRoot: '/public',
+      serveStaticOptions: {
+        fallthrough: false,
+      },
     }),
   ],
   controllers: [AppController],

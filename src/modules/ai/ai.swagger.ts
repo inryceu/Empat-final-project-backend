@@ -171,7 +171,8 @@ export function ApiGetOrGenerateAvatarUrl() {
       schema: {
         example: {
           isNew: true,
-          avatarUrl: 'https://empat-final-project-backend-production.up.railway.app/public/avatars/avatar_65f1a2b3c4d5e6f7a8b9c0d1_1711200000000.jpg',
+          avatarUrl:
+            'https://empat-final-project-backend-production.up.railway.app/public/avatars/avatar_65f1a2b3c4d5e6f7a8b9c0d1_1711200000000.jpg',
         },
       },
     }),
@@ -181,7 +182,8 @@ export function ApiGetOrGenerateAvatarUrl() {
         'Доступ заборонено. Тільки співробітники можуть генерувати аватари.',
       schema: {
         example: {
-          message: 'Тільки співробітники можуть мати персоналізовані AI-аватари',
+          message:
+            'Тільки співробітники можуть мати персоналізовані AI-аватари',
           error: 'Forbidden',
           statusCode: 403,
         },
@@ -193,7 +195,8 @@ export function ApiGetOrGenerateAvatarUrl() {
     }),
     ApiResponse({
       status: 500,
-      description: 'Внутрішня помилка сервера при спробі згенерувати або зберегти файл зображення.',
+      description:
+        'Внутрішня помилка сервера при спробі згенерувати або зберегти файл зображення.',
     }),
   );
 }
