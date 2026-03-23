@@ -3,13 +3,16 @@ import {
   InternalServerErrorException,
   OnModuleInit,
 } from '@nestjs/common';
+import * as fs from 'fs';
+import * as path from 'path';
 
 @Injectable()
 export class ImageGeneratorService implements OnModuleInit {
   private apiKeys: string[] = [];
   private currentKeyIndex = 0;
   private requestCount = 0;
-  private readonly REQUESTS_PER_KEY = 1;
+  private readonly REQUESTS_PER_KEY = 1;  
+  private readonly UPLOADS_DIR = path.join(__dirname, '..', '..', 'public', 'avatars');
 
   onModuleInit() {
     const keysString = process.env.POLLINATIONS_API_KEYS;
@@ -28,6 +31,10 @@ export class ImageGeneratorService implements OnModuleInit {
     if (this.apiKeys.length === 0) {
       throw new Error('No valid keys found for Pollinations');
     }
+
+    if (!fs.existsSync(this.UPLOADS_DIR)) {
+      fs.mkdirSync(this.UPLOADS_DIR, { recursive: true });
+    }
   }
 
   private getRotatedKey(): string {
@@ -42,31 +49,18 @@ export class ImageGeneratorService implements OnModuleInit {
 
   async generateImageBase64(prompt: string): Promise<string> {
     try {
-      const safePrompt = prompt
-        .replace(/[.,:;?!]/g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim();
+      const safePrompt = prompt.replace(/[.,:;?!]/g, ' ').replace(/\s+/g, ' ').trim();
       const encodedPrompt = encodeURIComponent(safePrompt);
-
       const url = `https://gen.pollinations.ai/image/${encodedPrompt}?model=flux`;
-
       const apiKey = this.getRotatedKey();
-
-      const headers = {
-        Authorization: `Bearer ${apiKey}`,
-      };
 
       const response = await fetch(url, {
         method: 'GET',
-        headers: headers,
+        headers: { Authorization: `Bearer ${apiKey}` },
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Pollinations Error Body:', errorText);
-        throw new InternalServerErrorException(
-          `Сервер повернув помилку: ${response.status} ${response.statusText}`,
-        );
+        throw new InternalServerErrorException(`Сервер повернув помилку: ${response.status}`);
       }
 
       const arrayBuffer = await response.arrayBuffer();
@@ -75,10 +69,43 @@ export class ImageGeneratorService implements OnModuleInit {
 
       return `data:${mimeType};base64,${base64Content}`;
     } catch (error: any) {
-      console.error('Image Generation Error:', error.message);
-      throw new InternalServerErrorException(
-        `Не вдалося згенерувати зображення: ${error.message}`,
-      );
+      throw new InternalServerErrorException(`Не вдалося згенерувати зображення: ${error.message}`);
+    }
+  }
+
+  async generateAndSaveImage(prompt: string, employeeId: string): Promise<string> {
+    try {
+      const safePrompt = prompt.replace(/[.,:;?!]/g, ' ').replace(/\s+/g, ' ').trim();
+      const encodedPrompt = encodeURIComponent(safePrompt);
+      const url = `https://gen.pollinations.ai/image/${encodedPrompt}?model=flux`;
+      const apiKey = this.getRotatedKey();
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${apiKey}` },
+      });
+
+      if (!response.ok) {
+        throw new InternalServerErrorException(`Сервер повернув помилку: ${response.status}`);
+      }
+
+      const arrayBuffer = await response.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      
+      const mimeType = response.headers.get('content-type') || 'image/jpeg';
+      const extension = mimeType === 'image/png' ? '.png' : '.jpg';
+      
+      const fileName = `avatar_${employeeId}_${Date.now()}${extension}`;
+      const filePath = path.join(this.UPLOADS_DIR, fileName);
+
+      fs.writeFileSync(filePath, buffer);
+
+      const publicUrl = `${process.env.APP_URL || 'http://localhost:3000'}/public/avatars/${fileName}`;
+
+      return publicUrl;
+      
+    } catch (error: any) {
+      throw new InternalServerErrorException(`Не вдалося згенерувати зображення: ${error.message}`);
     }
   }
 }

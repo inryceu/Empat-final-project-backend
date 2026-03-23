@@ -281,4 +281,19 @@ export class AiService {
 
     return { isNew: true, avatarUrl: publicUrl };
   }
+
+  async getOrGenerateAvatarUrl(companyId: string, employeeId: string) {
+    const employee = await this.employeesService.findById(companyId, employeeId);
+    if (!employee) throw new NotFoundException('Співробітника не знайдено');
+    
+    if (employee.avatarUrl) return { isNew: false, avatarUrl: employee.avatarUrl };
+
+    const promptData = { ...employee };
+    const prompt = generateAvatarPrompt(promptData);
+
+    const publicUrl = await this.imageGeneratorService.generateAndSaveImage(prompt, employeeId);
+    
+    await this.employeesService.updateAvatar(employeeId, publicUrl);
+    return { isNew: true, avatarUrl: publicUrl };
+  }
 }
