@@ -232,7 +232,11 @@ export class AiService {
   }
 
   private async buildAvatarPrompt(employee: any): Promise<string> {
-    const promptData = { ...employee };
+    const promptData =
+      typeof employee.toObject === 'function'
+        ? employee.toObject()
+        : { ...employee };
+
     const cyrillicRegex = /[а-яА-ЯіІїЇєЄґҐ]/;
     const translateInstruction =
       'Translate this word/phrase to English. Return ONLY the translation, nothing else.';
@@ -274,6 +278,11 @@ export class AiService {
 
     if (employee.avatarUrl) {
       if (employee.avatarUrl.startsWith('data:image')) {
+        const newUrl = this.imageGeneratorService.saveBase64ToFile(
+          employee.avatarUrl,
+          employeeId,
+        );
+        await this.employeesService.updateAvatar(employeeId, newUrl);
         return { isNew: false, avatarUrl: employee.avatarUrl };
       } else {
         const base64 = this.imageGeneratorService.convertFileToBase64(
@@ -285,12 +294,16 @@ export class AiService {
 
     const prompt = await this.buildAvatarPrompt(employee);
 
-    const publicUrl =
-      await this.imageGeneratorService.generateImageBase64(prompt);
+    const publicUrl = await this.imageGeneratorService.generateAndSaveImage(
+      prompt,
+      employeeId,
+    );
 
     await this.employeesService.updateAvatar(employeeId, publicUrl);
 
-    return { isNew: true, avatarUrl: publicUrl };
+    const base64 = this.imageGeneratorService.convertFileToBase64(publicUrl);
+
+    return { isNew: true, avatarUrl: base64 };
   }
 
   async getOrGenerateAvatarUrl(companyId: string, employeeId: string) {
