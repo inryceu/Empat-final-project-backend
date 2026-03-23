@@ -1,4 +1,6 @@
 import { Module } from '@nestjs/common';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './modules/auth/auth.module';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -16,6 +18,13 @@ import { CompaniesModule } from './modules/companies/companies.module';
     AuthModule,
     EmployeesModule,
     CompaniesModule,
+    ServeStaticModule.forRoot({
+      rootPath: join(process.cwd(), 'public'),
+      serveRoot: '/public',
+      serveStaticOptions: {
+        fallthrough: false,
+      },
+    }),
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -37,7 +37,7 @@ export class EmployeesService {
 
     const invites = await this.inviteModel
       .find({ companyId })
-      .select('-__v -token')
+      .select('-__v -token -avatarUrl')
       .lean()
       .exec();
 

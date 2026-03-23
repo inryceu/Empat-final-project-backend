@@ -35,6 +35,7 @@ export class AuthService {
     const entityData = entity.toObject ? entity.toObject() : { ...entity };
     delete entityData.password;
     delete entityData.__v;
+    delete entityData.avatarUrl;
 
     const res = {
       accessToken,

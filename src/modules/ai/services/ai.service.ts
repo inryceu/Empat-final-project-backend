@@ -231,17 +231,11 @@ export class AiService {
       .slice(0, limit);
   }
 
-  async getOrGenerateAvatar(companyId: string, employeeId: string) {
-    const employee = await this.employeesService.findById(
-      companyId,
-      employeeId,
-    );
-
-    if (!employee) throw new NotFoundException('Співробітника не знайдено');
-    if (employee.avatarUrl)
-      return { isNew: false, avatarUrl: employee.avatarUrl };
-
-    const promptData = { ...employee };
+  private async buildAvatarPrompt(employee: any): Promise<string> {
+    const promptData =
+      typeof employee.toObject === 'function'
+        ? employee.toObject()
+        : { ...employee };
 
     const cyrillicRegex = /[а-яА-ЯіІїЇєЄґҐ]/;
     const translateInstruction =
@@ -272,10 +266,75 @@ export class AiService {
       }
     }
 
-    const prompt = generateAvatarPrompt(promptData);
+    return generateAvatarPrompt(promptData);
+  }
 
-    const publicUrl =
-      await this.imageGeneratorService.generateImageBase64(prompt);
+  async getOrGenerateAvatar(companyId: string, employeeId: string) {
+    const employee = await this.employeesService.findById(
+      companyId,
+      employeeId,
+    );
+    if (!employee) throw new NotFoundException('Співробітника не знайдено');
+
+    if (employee.avatarUrl) {
+      if (employee.avatarUrl.startsWith('data:image')) {
+        const newUrl = this.imageGeneratorService.saveBase64ToFile(
+          employee.avatarUrl,
+          employeeId,
+        );
+        await this.employeesService.updateAvatar(employeeId, newUrl);
+        return { isNew: false, avatarUrl: employee.avatarUrl };
+      } else {
+        const base64 = this.imageGeneratorService.convertFileToBase64(
+          employee.avatarUrl,
+        );
+        return { isNew: false, avatarUrl: base64 };
+      }
+    }
+
+    const prompt = await this.buildAvatarPrompt(employee);
+
+    const publicUrl = await this.imageGeneratorService.generateAndSaveImage(
+      prompt,
+      employeeId,
+    );
+
+    await this.employeesService.updateAvatar(employeeId, publicUrl);
+
+    const base64 = this.imageGeneratorService.convertFileToBase64(publicUrl);
+
+    return { isNew: true, avatarUrl: base64 };
+  }
+
+  async getOrGenerateAvatarUrl(companyId: string, employeeId: string) {
+    const employee = await this.employeesService.findById(
+      companyId,
+      employeeId,
+    );
+    if (!employee) throw new NotFoundException('Співробітника не знайдено');
+
+    if (employee.avatarUrl) {
+      if (
+        employee.avatarUrl.startsWith('http') ||
+        employee.avatarUrl.startsWith('/public')
+      ) {
+        return { isNew: false, avatarUrl: employee.avatarUrl };
+      } else if (employee.avatarUrl.startsWith('data:image')) {
+        const url = this.imageGeneratorService.saveBase64ToFile(
+          employee.avatarUrl,
+          employeeId,
+        );
+        await this.employeesService.updateAvatar(employeeId, url);
+        return { isNew: false, avatarUrl: url };
+      }
+    }
+
+    const prompt = await this.buildAvatarPrompt(employee);
+
+    const publicUrl = await this.imageGeneratorService.generateAndSaveImage(
+      prompt,
+      employeeId,
+    );
 
     await this.employeesService.updateAvatar(employeeId, publicUrl);
 

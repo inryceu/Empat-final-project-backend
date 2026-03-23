@@ -157,3 +157,46 @@ export function ApiGetChatHistory() {
     }),
   );
 }
+
+export function ApiGetOrGenerateAvatarUrl() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Отримати або згенерувати URL персоналізованого аватара',
+      description:
+        'Перевіряє, чи є у співробітника збережений аватар. Якщо є — повертає публічне посилання на нього. Якщо немає — генерує новий за допомогою ШІ (на основі профілю), зберігає файл локально на сервері та повертає абсолютний URL (сформований на базі змінної оточення APP_URL).',
+    }),
+    ApiResponse({
+      status: 200,
+      description: 'Абсолютний URL аватара успішно отримано або згенеровано.',
+      schema: {
+        example: {
+          isNew: true,
+          avatarUrl:
+            'https://empat-final-project-backend-production.up.railway.app/public/avatars/avatar_65f1a2b3c4d5e6f7a8b9c0d1_1711200000000.jpg',
+        },
+      },
+    }),
+    ApiResponse({
+      status: 403,
+      description:
+        'Доступ заборонено. Тільки співробітники можуть генерувати аватари.',
+      schema: {
+        example: {
+          message:
+            'Тільки співробітники можуть мати персоналізовані AI-аватари',
+          error: 'Forbidden',
+          statusCode: 403,
+        },
+      },
+    }),
+    ApiResponse({
+      status: 404,
+      description: 'Профіль співробітника не знайдено в базі даних.',
+    }),
+    ApiResponse({
+      status: 500,
+      description:
+        'Внутрішня помилка сервера при спробі згенерувати або зберегти файл зображення.',
+    }),
+  );
+}
