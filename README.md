@@ -1,98 +1,150 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Boardli Backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Backend API for Boardli, an onboarding assistant platform where companies upload knowledge resources and employees query them through an AI-powered chat interface (RAG workflow).
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Tech Stack
 
-## Description
+- NestJS
+- MongoDB + Mongoose
+- JWT + Passport
+- Google OAuth 2.0
+- Gemini AI (`@google/generative-ai`)
+- LangChain text splitters
+- Typesense (vector search and indexing)
+- Redis (cache and query statistics)
+- Swagger (OpenAPI docs)
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Features
 
-## Project setup
+- Company and employee authentication (email/password + Google OAuth)
+- Role-aware endpoints for `company` and `employee` users
+- Company department management and employee invitation flow
+- Resource ingestion from:
+  - uploaded files (`.pdf`, `.docx`, `.md`, `.txt`)
+  - URLs (static and dynamic pages via Cheerio/Puppeteer)
+- RAG chat over company knowledge base:
+  - chunking + embeddings + vector retrieval + Gemini answer generation
+- AI-generated personalized employee avatars
+- Chat history persistence and welcome message bootstrap
+- Swagger API documentation at runtime
 
-```bash
-$ pnpm install
-```
+## Prerequisites
 
-## Compile and run the project
+- Node.js 20+
+- npm 10+ (or pnpm, but align with the lockfile strategy in your team)
+- MongoDB instance
+- Redis instance
+- Typesense instance
+- Google OAuth credentials
+- Gemini API keys
 
-```bash
-# development
-$ pnpm run start
+## Getting Started (Local)
 
-# watch mode
-$ pnpm run start:dev
-
-# production mode
-$ pnpm run start:prod
-```
-
-## Run tests
+### 1. Clone
 
 ```bash
-# unit tests
-$ pnpm run test
-
-# e2e tests
-$ pnpm run test:e2e
-
-# test coverage
-$ pnpm run test:cov
+git clone <your-repository-url>
+cd Empat-final-project-backend
 ```
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+### 2. Install dependencies
 
 ```bash
-$ pnpm install -g @nestjs/mau
-$ mau deploy
+npm install
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### 3. Configure environment
 
-## Resources
+Create a `.env` file in the project root and set variables from the table below.
 
-Check out a few resources that may come in handy when working with NestJS:
+### 4. Run in development
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+```bash
+npm run start:dev
+```
 
-## Support
+The API starts on `http://localhost:3000` unless `PORT` is overridden.
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+## Environment Variables
 
-## Stay in touch
+All variables used by this codebase:
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+| Variable | Required | Description |
+| --- | --- | --- |
+| `PORT` | No | API port for NestJS server. Defaults to `3000`. |
+| `MONGODB_URI` | Yes | MongoDB connection string for `MongooseModule.forRoot`. |
+| `JWT_SECRET` | Yes | Secret used by `JwtModule` and `JwtStrategy` to sign/verify JWT tokens. |
+| `FRONTEND_URL` | Yes | Frontend base URL used for OAuth redirects and resource download links. |
+| `APP_URL` | Yes | Public backend URL used to build avatar public links in `ImageGeneratorService`. |
+| `GOOGLE_CLIENT_ID` | Yes | Google OAuth web client ID used by Passport Google strategy. |
+| `GOOGLE_CLIENT_SECRET` | Yes | Google OAuth web client secret. |
+| `GOOGLE_CALLBACK_URL` | Yes | OAuth callback URL for `GET /api/v1/auth/google/callback`. |
+| `GOOGLE_CLIENT_ID_MOBILE` | Yes | Google mobile client ID used to verify mobile ID tokens in `AuthService.verifyGoogleIdToken`. |
+| `GEMINI_API_KEYS` | Yes | Comma-separated Gemini API keys; `GeminiService` rotates keys after several requests. |
+| `POLLINATIONS_API_KEYS` | Yes | Comma-separated API keys used for avatar image generation fallback/provider calls. |
+| `REDIS_URL` | Yes | Redis connection string for `RedisService`. |
+| `TYPESENSE_HOST` | Yes | Typesense host (used by `SearchService`). |
+| `TYPESENSE_PORT` | Yes | Typesense port (used by `SearchService`). |
+| `TYPESENSE_PROTOCOL` | Yes | Typesense protocol (`http` or `https`). |
+| `TYPESENSE_API_KEY` | Yes | Typesense admin/search key for collections and document operations. |
+| `PUPPETEER_EXECUTABLE_PATH` | No | Chromium executable path for dynamic page scraping. Defaults to container/linux path if not set. |
 
-## License
+## Project Structure
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+```text
+src/
+  app.module.ts
+  main.ts
+  modules/
+    auth/         # Registration, login, JWT, Google OAuth strategies
+    companies/    # Company profile, departments, invite lifecycle
+    employees/    # Employee CRUD and profile updates
+    resources/    # Upload URL/file resources and secure retrieval
+    ai/           # RAG orchestration, embeddings, Gemini responses, avatars
+    chat/         # Chat history persistence
+    search/       # Typesense initialization and vector search
+    cache/        # Redis client + response caching + query stats
+```
+
+## Available Scripts
+
+From `package.json`:
+
+- `npm run start` - run NestJS in default mode
+- `npm run start:dev` - run in watch mode
+- `npm run start:debug` - run with debugger and watch mode
+- `npm run build` - compile TypeScript to `dist/`
+- `npm run start:prod` - run production build (`node dist/main`)
+- `npm run lint` - run ESLint with autofix
+- `npm run format` - run Prettier formatting
+- `npm run test` - run unit tests
+- `npm run test:watch` - run tests in watch mode
+- `npm run test:cov` - run tests with coverage
+- `npm run test:e2e` - run e2e test suite
+- `npm run test:debug` - run Jest in debug mode
+
+## API Documentation (Swagger)
+
+When the server is running:
+
+- Swagger UI: `http://localhost:3000/api/v1/docs`
+
+## Core API Areas
+
+- `AuthController` (`/api/v1/auth`)
+  - employee/company registration and login
+  - Google OAuth web + mobile login
+  - current user profile (`/me`)
+- `CompaniesController` (`/api/v1/companies`)
+  - department management
+  - invite employee flow
+  - employee/invite update paths for company accounts
+- `EmployeeController` (`/api/v1/employees`)
+  - list/read/update/delete employee or invite records by company scope
+- `ResourcesController` (`/api/v1/resources`)
+  - upload file, add URL, list resources, secure download
+- `AiController` (`/api/v1/ai`)
+  - AI status
+  - RAG chat endpoint
+  - avatar generation
+  - chat history
