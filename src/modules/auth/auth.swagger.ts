@@ -40,25 +40,6 @@ export function ApiGoogleAuthCallback() {
   );
 }
 
-export function ApiGoogleAuthMobile() {
-  return applyDecorators(
-    ApiOperation({
-      summary: 'Google Авторизація для мобільних додатків',
-      description: 'Приймає idToken від мобільного додатка для входу.',
-    }),
-    ApiBody({
-      type: GoogleMobileLoginDto,
-      schema: {
-        example: {
-          idToken: 'eyJhbGciOiJSUzI1NiIsImtpZCI6I... (ваш Google токен)',
-        },
-      },
-    }),
-    ApiResponse({ status: 201, description: 'Успішна авторизація.' }),
-    ApiResponse({ status: 401, description: 'Невалідний Google токен.' }),
-  );
-}
-
 export function ApiRegisterEmployee() {
   return applyDecorators(
     ApiOperation({
