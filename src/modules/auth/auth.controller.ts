@@ -14,7 +14,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import type { Response } from 'express';
 
-import { LoginDto, GoogleMobileLoginDto } from './dto/login-employee.dto';
+import { LoginDto } from './dto/login-employee.dto';
 import { RegisterEmployeeDto } from './dto/register-employee.dto';
 import { RegisterCompanyDto } from './dto/register-company.dto';
 import { LoginCompanyDto } from './dto/login-company.dto';
@@ -22,7 +22,6 @@ import { LoginCompanyDto } from './dto/login-company.dto';
 import {
   ApiGoogleAuth,
   ApiGoogleAuthCallback,
-  ApiGoogleAuthMobile,
   ApiRegisterEmployee,
   ApiLoginEmployee,
   ApiRegisterCompany,
@@ -61,12 +60,6 @@ export class AuthController {
       const serverErrorUrl = `${frontendUrl}/auth/callback?error=server_error`;
       return res.redirect(302, serverErrorUrl);
     }
-  }
-
-  @Post('google/mobile')
-  @ApiGoogleAuthMobile()
-  async googleAuthMobile(@Body() dto: GoogleMobileLoginDto) {
-    return this.authService.verifyGoogleIdToken(dto.idToken);
   }
 
   @Post('employee/register')
