@@ -6,7 +6,7 @@ import {
   ApiBody,
 } from '@nestjs/swagger';
 
-import { LoginDto, GoogleMobileLoginDto } from './dto/login-employee.dto';
+import { LoginDto } from './dto/login-employee.dto';
 import { RegisterEmployeeDto } from './dto/register-employee.dto';
 import { RegisterCompanyDto } from './dto/register-company.dto';
 import { LoginCompanyDto } from './dto/login-company.dto';
@@ -37,25 +37,6 @@ export function ApiGoogleAuthCallback() {
       status: 401,
       description: 'Акаунт з таким email не знайдено.',
     }),
-  );
-}
-
-export function ApiGoogleAuthMobile() {
-  return applyDecorators(
-    ApiOperation({
-      summary: 'Google Авторизація для мобільних додатків',
-      description: 'Приймає idToken від мобільного додатка для входу.',
-    }),
-    ApiBody({
-      type: GoogleMobileLoginDto,
-      schema: {
-        example: {
-          idToken: 'eyJhbGciOiJSUzI1NiIsImtpZCI6I... (ваш Google токен)',
-        },
-      },
-    }),
-    ApiResponse({ status: 201, description: 'Успішна авторизація.' }),
-    ApiResponse({ status: 401, description: 'Невалідний Google токен.' }),
   );
 }
 
